@@ -6,16 +6,16 @@ compatibility_flags = ["nodejs_compat"]
 
 keep_vars = true
 
-# 定时任务配置（UTC）
-# - 每分钟：执行离线节点、资源告警
-# - 每小时：合并执行其他定时任务（表轮换、旧表清理、按配置时区/小时触发服务器到期检测）
-# - 注意同步修改deploy和index.js scheduled函数里面的值
 [triggers]
 crons = ["*/1 * * * *", "0 * * * *"]
+
+# Custom domain (configured via Cloudflare dashboard or zones)
+# The domain komari.moggy.ccwu.cc is already pointed to this worker
 
 [assets]
 directory = "./dist"
 binding = "ASSETS"
+not_found_handling = "none"
 
 [[d1_databases]]
 binding = "DB"

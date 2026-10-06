@@ -8,35 +8,36 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const publicDir = path.join(rootDir, 'public');
 const distDir = path.join(rootDir, 'dist');
+const glassDist = path.join(rootDir, 'themes', 'glassmorphism', 'dist');
 
 console.log('Cleaning dist directory...');
-if (fs.existsSync(distDir)) {
-  fs.removeSync(distDir);
-}
+if (fs.existsSync(distDir)) fs.removeSync(distDir);
 
-console.log('Building frontend...');
+// Step 1: Build CFSM default frontend
+console.log('Building CFSM frontend...');
 execSync('npx vite build', { cwd: rootDir, stdio: 'inherit' });
 
-console.log('Copying static assets...');
+// Step 2: Copy public/ (flags, os-icons, favicon, etc.)
+console.log('Copying public assets...');
 if (fs.existsSync(publicDir)) {
-  fs.copySync(publicDir, distDir, { overwrite: false });
-  console.log('Copied all static assets');
+  fs.copySync(publicDir, distDir, { overwrite: true });
 }
 
-// 重命名为 dashboard.html，避免 ASSETS 直接拦截首页
+// Step 3: Rename CFSM index.html → dashboard.html (legacy fallback at /dashboard)
+console.log('Renaming index.html → dashboard.html...');
 const indexHtmlPath = path.join(distDir, 'index.html');
 const dashboardHtmlPath = path.join(distDir, 'dashboard.html');
 if (fs.existsSync(indexHtmlPath)) {
   fs.renameSync(indexHtmlPath, dashboardHtmlPath);
-  console.log('Renamed index.html → dashboard.html');
 }
 
-// 自动将 Glassmorphism 高颜值主题打包到 dist/themes/glassmorphism/
-const glassmorphismDist = path.join(rootDir, 'themes', 'glassmorphism', 'dist');
-const targetThemeDist = path.join(distDir, 'themes', 'glassmorphism');
-if (fs.existsSync(glassmorphismDist)) {
-  fs.copySync(glassmorphismDist, targetThemeDist);
-  console.log('Glassmorphism theme assets copied to dist/themes/glassmorphism!');
+// Step 4: Copy Glassmorphism theme to dist root (index.html + assets/)
+console.log('Copying Glassmorphism theme to root...');
+if (fs.existsSync(glassDist)) {
+  fs.copySync(glassDist, distDir, { overwrite: true });
+  console.log('Glassmorphism → dist/ (root)');
+} else {
+  console.warn('Glassmorphism dist not found! Build it first: cd themes/glassmorphism && bun run build');
 }
 
 console.log('Build complete!');

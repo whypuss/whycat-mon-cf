@@ -474,6 +474,29 @@ export async function serveFrontend(request, env, settings = null) {
     settings = await loadSettings(env.DB);
   }
 
+  // Glassmorphism 主题直接從已部署的 /themes/glassmorphism/ 路徑服務
+  // 這避開了 env.ASSETS.fetch() 讀取嵌套路徑的問題
+  if (request.method === 'GET' && !settings?.theme_url) {
+    if (path === '/' || path === '/dashboard' || path === '/dashboard.html') {
+      return Response.redirect('/themes/glassmorphism/', 302);
+    }
+  }
+
+  if (request.method === 'GET' && path.startsWith('/themes/glassmorphism/')) {
+    if (env.ASSETS) {
+      const assetRes = await env.ASSETS.fetch(new Request(`http://static${path}`));
+      if (assetRes.ok) return assetRes;
+    }
+    // index.html fallback for SPA
+    if (path === '/themes/glassmorphism/') {
+      if (env.ASSETS) {
+        const indexRes = await env.ASSETS.fetch(new Request('http://static/themes/glassmorphism/index.html'));
+        if (indexRes.ok) return indexRes;
+      }
+    }
+    return new Response('Not Found', { status: 404, headers: { 'Content-Type': 'text/plain;charset=UTF-8' } });
+  }
+
   if (request.method === 'GET' && path.startsWith('/assets/')) {
     const resolvedTheme = resolveThemeUrlForAsset(request, settings);
     if (!resolvedTheme.themeUrl) {
