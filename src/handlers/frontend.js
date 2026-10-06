@@ -28,7 +28,7 @@ async function loadFrontendFiles(env) {
 
     if (env.ASSETS) {
       try {
-        const mainFiles = ['dashboard.html', 'style.css', 'themes/glassmorphism/index.html'];
+        const mainFiles = ['index.html', 'dashboard.html', 'style.css', 'themes/glassmorphism/index.html'];
         for (const filename of mainFiles) {
           try {
             const res = await env.ASSETS.fetch(new Request(`http://static/${filename.startsWith('/') ? filename.slice(1) : filename}`));
@@ -533,9 +533,9 @@ export async function serveFrontend(request, env, settings = null) {
       }
       return buildThemeIndexErrorResponse();
     }
-    // 当没有设置 theme_url 时，默认使用内置的 Glassmorphism 高颜值主题
+    // 当没有设置 theme_url 时，默认使用内置的 Glassmorphism 高颜值主题 (index.html)
     const files = await loadFrontendFiles(env);
-    const glassHtml = files['themes/glassmorphism/index.html'];
+    const glassHtml = files['index.html'] || files['themes/glassmorphism/index.html'];
     if (glassHtml) {
       return buildHtmlResponse(glassHtml, settings, request, env);
     }
@@ -543,12 +543,12 @@ export async function serveFrontend(request, env, settings = null) {
 
   // 默认直接渲染高颜值 Glassmorphism 主题首页！
   const files = await loadFrontendFiles(env);
-  const glassHtml = files['themes/glassmorphism/index.html'];
+  const glassHtml = files['index.html'] || files['themes/glassmorphism/index.html'];
   if (glassHtml && !shouldUseBuiltinFrontend(path)) {
     return buildHtmlResponse(glassHtml, settings, request, env);
   }
 
-  const html = files['dashboard.html'];
+  const html = files['index.html'] || files['dashboard.html'];
 
   if (html) {
     return buildHtmlResponse(html, settings, request, env);

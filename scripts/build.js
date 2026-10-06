@@ -31,11 +31,16 @@ if (fs.existsSync(indexHtmlPath)) {
   fs.renameSync(indexHtmlPath, dashboardHtmlPath);
 }
 
-// Step 4: Copy Glassmorphism theme to dist root (index.html + assets/)
-console.log('Copying Glassmorphism theme to root...');
+// Step 4: Copy Glassmorphism theme to dist root and dist/themes/glassmorphism/
+console.log('Copying Glassmorphism theme to root and themes/glassmorphism/...');
 if (fs.existsSync(glassDist)) {
   fs.copySync(glassDist, distDir, { overwrite: true });
-  console.log('Glassmorphism → dist/ (root)');
+  const themeSubDir = path.join(distDir, 'themes', 'glassmorphism');
+  fs.ensureDirSync(themeSubDir);
+  fs.copySync(glassDist, themeSubDir, { overwrite: true });
+  // Also overwrite dashboard.html so even legacy fallbacks render Glassmorphism!
+  fs.copyFileSync(path.join(glassDist, 'index.html'), dashboardHtmlPath);
+  console.log('Glassmorphism → dist/ (root) + dist/themes/glassmorphism/ + dashboard.html');
 } else {
   console.warn('Glassmorphism dist not found! Build it first: cd themes/glassmorphism && bun run build');
 }
