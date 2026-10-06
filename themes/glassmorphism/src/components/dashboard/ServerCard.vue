@@ -243,19 +243,145 @@ const lossTitle = computed(() => probeTitle('平均丢包', lossWindow.value.sam
  * `null`（该桶无采样）保留为原位的中性柱，对应上游的 `bg-muted-foreground/15`；
  * 整体无数据时才回落到 20 根更淡的占位柱（`bg-muted-foreground/10`）。
  */
+import type { ProbeTarget } from '@/types/cfsm'
+
+function buildBarsForTarget(
+  metric: string,
+  series: ProbeSeriesMap,
+  tone: (value: number) => string,
+  target?: ProbeTarget | null,
+): PingBar[] {
+  const points = target ? probeSeriesFor(series, target) : []
+  if (points.length === 0) return emptyBars(metric)
+  return points.map((point, index) => ({
+    key: `${metric}-${target || 'def'}-${point.timestamp}-${index}`,
+    className: typeof point.value === 'number' ? tone(point.value) : 'is-gap',
+  }))
+}
+
 function buildBars(
   metric: string,
   series: ProbeSeriesMap,
   tone: (value: number) => string,
 ): PingBar[] {
-  const target = primaryProbe.value?.target
-  const points = target ? probeSeriesFor(series, target) : []
-  if (points.length === 0) return emptyBars(metric)
-  return points.map((point, index) => ({
-    key: `${metric}-${point.timestamp}-${index}`,
-    className: typeof point.value === 'number' ? tone(point.value) : 'is-gap',
-  }))
+  return buildBarsForTarget(metric, series, tone, primaryProbe.value?.target)
 }
+
+interface ProbeCardItem {
+  target: ProbeTarget
+  label: string
+  latencyText: string
+  lossText: string
+  latencyBars: PingBar[]
+  lossBars: PingBar[]
+  hasData: boolean
+}
+
+// 提取全部可用网络探测线路：电信 CT、联通 CU、移动 CM 等
+const allNetworkProbes = computed<ProbeCardItem[]>(() => {
+  if (!props.server.latency || props.server.latency.length === 0) return []
+  return props.server.latency.map((probe) => {
+    const target = probe.target as ProbeTarget
+    const latWin = target ? windowAverage(props.server.history.latencySeries, target) : { value: null, samples: 0 }
+    const lossWin = target ? windowAverage(props.server.history.packetLossSeries, target) : { value: null, samples: 0 }
+    const latencyText = latWin.value === null
+      ? formatLatency(probe.latency ?? false)
+      : formatLatency(latWin.value)
+    const lossText = lossWin.value === null
+      ? formatProbePercent(probe.packetLoss ?? false)
+      : formatProbePercent(lossWin.value)
+    const latencyBars = buildBarsForTarget('latency', props.server.history.latencySeries, latencyToneClass, target)
+    const lossBars = buildBarsForTarget('loss', props.server.history.packetLossSeries, lossToneClass, target)
+    const hasData = probe.latency !== false || probe.packetLoss !== false
+    return {
+      target,
+      label: probe.label || (target as string).toUpperCase(),
+      latencyText,
+      lossText,
+      latencyBars,
+      lossBars,
+      hasData
+    }
+  })
+})
+
+interface UnlockItem {
+  key: string
+  name: string
+  category: 'stream' | 'ai'
+  status: 'yes' | 'partial' | 'no'
+  statusText: string
+  latency?: number
+  region?: string
+}
+
+const unlockItems = computed<UnlockItem[]>(() => {
+  const u = props.server.unlocks
+  if (!u) return []
+  const items: UnlockItem[] = []
+  if (u.youtube) {
+    items.push({
+      key: 'youtube',
+      name: 'YouTube',
+      category: 'stream',
+      status: u.youtube.status === 'yes' ? 'yes' : 'no',
+      statusText: u.youtube.status === 'yes' ? '已解锁' : '未解锁',
+      latency: u.youtube.latency,
+      region: u.youtube.region ? u.youtube.region.toUpperCase() : ''
+    })
+  }
+  if (u.netflix) {
+    items.push({
+      key: 'netflix',
+      name: 'Netflix',
+      category: 'stream',
+      status: u.netflix.status === 'yes' ? 'yes' : (u.netflix.status === 'partial' ? 'partial' : 'no'),
+      statusText: u.netflix.status === 'yes' ? '原生解锁' : (u.netflix.status === 'partial' ? '仅自制剧' : '未解锁'),
+      latency: u.netflix.latency
+    })
+  }
+  if (u.disney) {
+    items.push({
+      key: 'disney',
+      name: 'Disney+',
+      category: 'stream',
+      status: u.disney.status === 'yes' ? 'yes' : 'no',
+      statusText: u.disney.status === 'yes' ? '已解锁' : '未解锁',
+      latency: u.disney.latency
+    })
+  }
+  if (u.chatgpt) {
+    items.push({
+      key: 'chatgpt',
+      name: 'ChatGPT',
+      category: 'ai',
+      status: u.chatgpt.status === 'yes' ? 'yes' : 'no',
+      statusText: u.chatgpt.status === 'yes' ? '已解锁' : '未解锁',
+      latency: u.chatgpt.latency
+    })
+  }
+  if (u.claude) {
+    items.push({
+      key: 'claude',
+      name: 'Claude',
+      category: 'ai',
+      status: u.claude.status === 'yes' ? 'yes' : 'no',
+      statusText: u.claude.status === 'yes' ? '已解锁' : '未解锁',
+      latency: u.claude.latency
+    })
+  }
+  if (u.gemini) {
+    items.push({
+      key: 'gemini',
+      name: 'Gemini',
+      category: 'ai',
+      status: u.gemini.status === 'yes' ? 'yes' : 'no',
+      statusText: u.gemini.status === 'yes' ? '已解锁' : '未解锁',
+      latency: u.gemini.latency
+    })
+  }
+  return items
+})
 
 const latencyBars = computed(() => buildBars(
   'latency',
@@ -524,7 +650,36 @@ function hideMissingImage(event: Event): void {
         </div>
       </div>
 
-      <div v-if="primaryProbe" class="node-probes">
+      <!-- 三网监控：电信、联通、移动 独立条形展示 -->
+      <div v-if="allNetworkProbes.length > 0" class="node-network-probes" aria-label="三网网络延迟与丢包">
+        <div v-for="probe in allNetworkProbes" :key="probe.target" class="node-probes">
+          <div class="node-probe">
+            <div class="node-probe__head">
+              <span>{{ probe.label }} 延迟</span>
+              <span class="node-probe__value">{{ probe.latencyText }}</span>
+            </div>
+            <div
+              class="node-probe__bars"
+              :style="{ gridTemplateColumns: `repeat(${probe.latencyBars.length}, minmax(0, 1fr))` }"
+            >
+              <span v-for="bar in probe.latencyBars" :key="bar.key" :class="bar.className" />
+            </div>
+          </div>
+          <div class="node-probe">
+            <div class="node-probe__head">
+              <span>{{ probe.label }} 丢包</span>
+              <span class="node-probe__value">{{ probe.lossText }}</span>
+            </div>
+            <div
+              class="node-probe__bars"
+              :style="{ gridTemplateColumns: `repeat(${probe.lossBars.length}, minmax(0, 1fr))` }"
+            >
+              <span v-for="bar in probe.lossBars" :key="bar.key" :class="bar.className" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-else-if="primaryProbe" class="node-probes">
         <div class="node-probe">
           <div class="node-probe__head" :title="latencyTitle">
             <span>延迟</span>
@@ -551,64 +706,32 @@ function hideMissingImage(event: Event): void {
         </div>
       </div>
 
-      <div v-if="server.unlocks" class="node-unlocks" aria-label="流媒体与AI解锁状态">
-        <div class="unlock-group">
-          <span
-            v-if="server.unlocks.youtube"
-            class="unlock-badge"
-            :class="server.unlocks.youtube.status === 'yes' ? 'unlock-badge--yes' : 'unlock-badge--no'"
-            :title="`YouTube: ${server.unlocks.youtube.status} (${server.unlocks.youtube.latency || 0}ms)`"
+      <!-- AI 与 流媒体解锁：全称 + 与延迟/丢包一致的条形面板展示 -->
+      <div v-if="unlockItems.length > 0" class="node-unlock-bars-container" aria-label="流媒体与AI服务解锁条形图">
+        <div class="unlock-bars-grid">
+          <div
+            v-for="item in unlockItems"
+            :key="item.key"
+            class="node-unlock-bar-item"
+            :class="`is-${item.status}`"
           >
-            YT {{ server.unlocks.youtube.region ? server.unlocks.youtube.region.toUpperCase() : '' }}
-            <small v-if="server.unlocks.youtube.latency">{{ server.unlocks.youtube.latency }}ms</small>
-          </span>
-          <span
-            v-if="server.unlocks.netflix"
-            class="unlock-badge"
-            :class="server.unlocks.netflix.status === 'yes' ? 'unlock-badge--yes' : (server.unlocks.netflix.status === 'partial' ? 'unlock-badge--partial' : 'unlock-badge--no')"
-            :title="`Netflix: ${server.unlocks.netflix.status} (${server.unlocks.netflix.latency || 0}ms)`"
-          >
-            NF {{ server.unlocks.netflix.status === 'partial' ? '自制' : '' }}
-            <small v-if="server.unlocks.netflix.latency">{{ server.unlocks.netflix.latency }}ms</small>
-          </span>
-          <span
-            v-if="server.unlocks.disney"
-            class="unlock-badge"
-            :class="server.unlocks.disney.status === 'yes' ? 'unlock-badge--yes' : 'unlock-badge--no'"
-            :title="`Disney+: ${server.unlocks.disney.status} (${server.unlocks.disney.latency || 0}ms)`"
-          >
-            DP
-            <small v-if="server.unlocks.disney.latency">{{ server.unlocks.disney.latency }}ms</small>
-          </span>
-        </div>
-        <div class="unlock-group">
-          <span
-            v-if="server.unlocks.chatgpt"
-            class="unlock-badge"
-            :class="server.unlocks.chatgpt.status === 'yes' ? 'unlock-badge--yes' : 'unlock-badge--no'"
-            :title="`ChatGPT: ${server.unlocks.chatgpt.status} (${server.unlocks.chatgpt.latency || 0}ms)`"
-          >
-            GPT
-            <small v-if="server.unlocks.chatgpt.latency">{{ server.unlocks.chatgpt.latency }}ms</small>
-          </span>
-          <span
-            v-if="server.unlocks.claude"
-            class="unlock-badge"
-            :class="server.unlocks.claude.status === 'yes' ? 'unlock-badge--yes' : 'unlock-badge--no'"
-            :title="`Claude: ${server.unlocks.claude.status} (${server.unlocks.claude.latency || 0}ms)`"
-          >
-            Claude
-            <small v-if="server.unlocks.claude.latency">{{ server.unlocks.claude.latency }}ms</small>
-          </span>
-          <span
-            v-if="server.unlocks.gemini"
-            class="unlock-badge"
-            :class="server.unlocks.gemini.status === 'yes' ? 'unlock-badge--yes' : 'unlock-badge--no'"
-            :title="`Gemini: ${server.unlocks.gemini.status} (${server.unlocks.gemini.latency || 0}ms)`"
-          >
-            Gemini
-            <small v-if="server.unlocks.gemini.latency">{{ server.unlocks.gemini.latency }}ms</small>
-          </span>
+            <div class="node-unlock-bar-item__head">
+              <span class="node-unlock-bar-item__name">
+                {{ item.name }}
+                <small v-if="item.region" class="node-unlock-bar-item__region">({{ item.region }})</small>
+              </span>
+              <span class="node-unlock-bar-item__status">
+                <span :class="`unlock-status-text unlock-status-text--${item.status}`">{{ item.statusText }}</span>
+                <small v-if="item.latency" class="node-unlock-bar-item__latency">{{ item.latency }}ms</small>
+              </span>
+            </div>
+            <div class="node-unlock-bar-item__track">
+              <span
+                class="node-unlock-bar-item__fill"
+                :class="`node-unlock-bar-item__fill--${item.status}`"
+              />
+            </div>
+          </div>
         </div>
       </div>
 

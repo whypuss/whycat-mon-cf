@@ -6172,3 +6172,136 @@ a {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* ==========================================================================
+   多网监控 (电信 / 联通 / 移动) & 流媒体/AI 解锁条形进度展示
+   ========================================================================== */
+.node-network-probes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.node-unlock-bars-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.unlock-bars-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.node-unlock-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--glass-soft, rgba(255, 255, 255, 0.08)) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line, rgba(255, 255, 255, 0.1)) 60%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.2s ease;
+}
+
+.node-unlock-bar-item:hover {
+  background: var(--glass-hover, rgba(255, 255, 255, 0.14));
+  transform: translateY(-1px);
+}
+
+.node-unlock-bar-item__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.node-unlock-bar-item__name {
+  font-weight: 600;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.node-unlock-bar-item__region {
+  font-size: 9px;
+  color: var(--muted);
+  font-weight: normal;
+}
+
+.node-unlock-bar-item__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.unlock-status-text {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.unlock-status-text--yes {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.unlock-status-text--partial {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+}
+
+.unlock-status-text--no {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.node-unlock-bar-item__latency {
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* 进度条轨道与充满条 */
+.node-unlock-bar-item__track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line-strong, rgba(255, 255, 255, 0.15)) 50%, transparent);
+  overflow: hidden;
+}
+
+.node-unlock-bar-item__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.node-unlock-bar-item__fill--yes {
+  width: 100%;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+}
+
+.node-unlock-bar-item__fill--partial {
+  width: 65%;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+}
+
+.node-unlock-bar-item__fill--no {
+  width: 25%;
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
