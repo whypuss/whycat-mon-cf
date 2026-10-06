@@ -259,6 +259,7 @@ func metricsToMap(m Metrics) map[string]any {
 		"loss_node_2":    m.LossNode2,
 		"loss_node_3":    m.LossNode3,
 		"loss_node_4":    m.LossNode4,
+		"unlocks":        m.Unlocks,
 	}
 }
 

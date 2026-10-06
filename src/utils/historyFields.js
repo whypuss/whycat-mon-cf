@@ -138,7 +138,8 @@ export const HISTORY_TABLE_COLUMNS = Object.freeze([
   ['ip_v6', "TEXT DEFAULT '0'"],
   ['boot_time', "TEXT DEFAULT ''"],
   ['net_rx_monthly', 'REAL DEFAULT 0'],
-  ['net_tx_monthly', 'REAL DEFAULT 0']
+  ['net_tx_monthly', 'REAL DEFAULT 0'],
+  ['unlocks', "TEXT DEFAULT ''"]
 ]);
 
 export const HISTORY_INSERT_COLUMNS = Object.freeze(

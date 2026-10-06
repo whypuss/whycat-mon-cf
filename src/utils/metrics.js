@@ -161,6 +161,9 @@ export function normalizeProbeMetricRow(metrics) {
       normalized[field] = normalizeProbeMetric(normalized[field]);
     }
   }
+  if (typeof normalized.unlocks === 'string' && normalized.unlocks) {
+    try { normalized.unlocks = JSON.parse(normalized.unlocks); } catch (_) { delete normalized.unlocks; }
+  }
   return normalized;
 }
 
