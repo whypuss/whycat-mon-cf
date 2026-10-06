@@ -551,6 +551,67 @@ function hideMissingImage(event: Event): void {
         </div>
       </div>
 
+      <div v-if="server.unlocks" class="node-unlocks" aria-label="流媒体与AI解锁状态">
+        <div class="unlock-group">
+          <span
+            v-if="server.unlocks.youtube"
+            class="unlock-badge"
+            :class="server.unlocks.youtube.status === 'yes' ? 'unlock-badge--yes' : 'unlock-badge--no'"
+            :title="`YouTube: ${server.unlocks.youtube.status} (${server.unlocks.youtube.latency || 0}ms)`"
+          >
+            YT {{ server.unlocks.youtube.region ? server.unlocks.youtube.region.toUpperCase() : '' }}
+            <small v-if="server.unlocks.youtube.latency">{{ server.unlocks.youtube.latency }}ms</small>
+          </span>
+          <span
+            v-if="server.unlocks.netflix"
+            class="unlock-badge"
+            :class="server.unlocks.netflix.status === 'yes' ? 'unlock-badge--yes' : (server.unlocks.netflix.status === 'partial' ? 'unlock-badge--partial' : 'unlock-badge--no')"
+            :title="`Netflix: ${server.unlocks.netflix.status} (${server.unlocks.netflix.latency || 0}ms)`"
+          >
+            NF {{ server.unlocks.netflix.status === 'partial' ? '自制' : '' }}
+            <small v-if="server.unlocks.netflix.latency">{{ server.unlocks.netflix.latency }}ms</small>
+          </span>
+          <span
+            v-if="server.unlocks.disney"
+            class="unlock-badge"
+            :class="server.unlocks.disney.status === 'yes' ? 'unlock-badge--yes' : 'unlock-badge--no'"
+            :title="`Disney+: ${server.unlocks.disney.status} (${server.unlocks.disney.latency || 0}ms)`"
+          >
+            DP
+            <small v-if="server.unlocks.disney.latency">{{ server.unlocks.disney.latency }}ms</small>
+          </span>
+        </div>
+        <div class="unlock-group">
+          <span
+            v-if="server.unlocks.chatgpt"
+            class="unlock-badge"
+            :class="server.unlocks.chatgpt.status === 'yes' ? 'unlock-badge--yes' : 'unlock-badge--no'"
+            :title="`ChatGPT: ${server.unlocks.chatgpt.status} (${server.unlocks.chatgpt.latency || 0}ms)`"
+          >
+            GPT
+            <small v-if="server.unlocks.chatgpt.latency">{{ server.unlocks.chatgpt.latency }}ms</small>
+          </span>
+          <span
+            v-if="server.unlocks.claude"
+            class="unlock-badge"
+            :class="server.unlocks.claude.status === 'yes' ? 'unlock-badge--yes' : 'unlock-badge--no'"
+            :title="`Claude: ${server.unlocks.claude.status} (${server.unlocks.claude.latency || 0}ms)`"
+          >
+            Claude
+            <small v-if="server.unlocks.claude.latency">{{ server.unlocks.claude.latency }}ms</small>
+          </span>
+          <span
+            v-if="server.unlocks.gemini"
+            class="unlock-badge"
+            :class="server.unlocks.gemini.status === 'yes' ? 'unlock-badge--yes' : 'unlock-badge--no'"
+            :title="`Gemini: ${server.unlocks.gemini.status} (${server.unlocks.gemini.latency || 0}ms)`"
+          >
+            Gemini
+            <small v-if="server.unlocks.gemini.latency">{{ server.unlocks.gemini.latency }}ms</small>
+          </span>
+        </div>
+      </div>
+
       <div v-if="server.tags.length > 0" class="node-tags" aria-label="节点标签">
         <span v-for="tag in server.tags" :key="tag" class="node-tag">{{ tag }}</span>
       </div>

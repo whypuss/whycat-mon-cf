@@ -31,4 +31,12 @@ if (fs.existsSync(indexHtmlPath)) {
   console.log('Renamed index.html → dashboard.html');
 }
 
+// 自动将 Glassmorphism 高颜值主题打包到 dist/themes/glassmorphism/
+const glassmorphismDist = path.join(rootDir, 'themes', 'glassmorphism', 'dist');
+const targetThemeDist = path.join(distDir, 'themes', 'glassmorphism');
+if (fs.existsSync(glassmorphismDist)) {
+  fs.copySync(glassmorphismDist, targetThemeDist);
+  console.log('Glassmorphism theme assets copied to dist/themes/glassmorphism!');
+}
+
 console.log('Build complete!');

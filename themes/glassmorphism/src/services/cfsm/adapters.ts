@@ -332,6 +332,7 @@ export function normalizeServer(
     agentVersion: stringValue(input.agent_version),
     lastUpdated: numberValue(input.last_updated),
     timestamp: numberValue(input.timestamp),
+    unlocks: input.unlocks,
     latestReportUpdates: latestReportUpdates(input.latestReportUpdates),
     systemConfig: systemConfig(input.sysConfig),
   }

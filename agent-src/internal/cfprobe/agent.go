@@ -554,6 +554,7 @@ func (a *Agent) buildMetrics(cfg Config, cpu string, netNow NetBytes, rxSpeed, t
 		LossNode2:    probeLossValue(cfg.Node2, probes.Node2),
 		LossNode3:    probeLossValue(cfg.Node3, probes.Node3),
 		LossNode4:    probeLossValue(cfg.Node4, probes.Node4),
+		Unlocks:      probes.Unlocks,
 	}
 }
 
@@ -778,7 +779,7 @@ func valueOrZero[T ~int64 | ~uint64](value *T) T {
 }
 
 func (a *Agent) networkWorker(ctx context.Context) {
-	var lastIP, lastProbe time.Time
+	var lastIP, lastProbe, lastUnlock time.Time
 	var ctHistory, cuHistory, cmHistory, bdHistory, node1History, node2History, node3History, node4History rollingProbeHistory
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
@@ -795,6 +796,11 @@ func (a *Agent) networkWorker(ctx context.Context) {
 				snap.IPv4 = lookupPublicIP("tcp4", a.log, usePublicDNS)
 				snap.IPv6 = lookupPublicIP("tcp6", a.log, usePublicDNS)
 				lastIP = now
+				needUpdate = true
+			}
+			if lastUnlock.IsZero() || now.Sub(lastUnlock) >= 15*time.Minute {
+				snap.Unlocks = ProbeAllUnlocks(a.log)
+				lastUnlock = now
 				needUpdate = true
 			}
 			if lastProbe.IsZero() || now.Sub(lastProbe) >= metricsProbeInterval {
@@ -848,6 +854,9 @@ func (a *Agent) networkWorker(ctx context.Context) {
 				}
 				if snap.Node4 == (ProbeResult{}) {
 					snap.Node4 = a.probes.Node4
+				}
+				if snap.Unlocks == (UnlockSnapshot{}) {
+					snap.Unlocks = a.probes.Unlocks
 				}
 				a.probes = snap
 				a.mu.Unlock()

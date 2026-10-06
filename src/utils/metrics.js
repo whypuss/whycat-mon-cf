@@ -217,4 +217,7 @@ export function mergeMetricsIntoServer(server, metrics) {
   server.ip_v6 = metrics.ip_v6 || '0';
   server.boot_time = metrics.boot_time || '';
   server.last_updated = metrics.timestamp || 0;
+  if (metrics.unlocks) {
+    server.unlocks = metrics.unlocks;
+  }
 }

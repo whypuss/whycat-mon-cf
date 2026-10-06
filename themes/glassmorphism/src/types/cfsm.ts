@@ -130,6 +130,7 @@ export interface CfsmServer {
   agentVersion: string | null
   lastUpdated: NullableNumber
   timestamp: NullableNumber
+  unlocks?: any
   latestReportUpdates: LatestReportUpdate[]
   systemConfig?: ServerSystemConfig
 }

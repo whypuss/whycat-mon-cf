@@ -79,16 +79,17 @@ type ProbeResult struct {
 }
 
 type ProbeSnapshot struct {
-	IPv4  string
-	IPv6  string
-	CT    ProbeResult
-	CU    ProbeResult
-	CM    ProbeResult
-	BD    ProbeResult
-	Node1 ProbeResult
-	Node2 ProbeResult
-	Node3 ProbeResult
-	Node4 ProbeResult
+	IPv4    string
+	IPv6    string
+	CT      ProbeResult
+	CU      ProbeResult
+	CM      ProbeResult
+	BD      ProbeResult
+	Node1   ProbeResult
+	Node2   ProbeResult
+	Node3   ProbeResult
+	Node4   ProbeResult
+	Unlocks UnlockSnapshot
 }
 
 type Metrics struct {
@@ -135,6 +136,7 @@ type Metrics struct {
 	LossNode2    any
 	LossNode3    any
 	LossNode4    any
+	Unlocks      any
 }
 
 type BasicStats struct {

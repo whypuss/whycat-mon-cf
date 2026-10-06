@@ -148,6 +148,7 @@ export function toGlassServer(server: CfsmServer, config: SiteConfig | null): Gl
     agentVersion: server.agentVersion,
     bootTime: finiteNonNegative(server.bootTime),
     lastUpdated: server.lastUpdated ?? server.timestamp,
+    unlocks: (server as any).unlocks,
   }
 }
 

@@ -94,6 +94,14 @@ export interface GlassServer {
   agentVersion: string | null
   bootTime: number | null
   lastUpdated: number | null
+  unlocks?: {
+    youtube?: { status: string; region?: string; latency?: number }
+    netflix?: { status: string; region?: string; latency?: number }
+    disney?: { status: string; region?: string; latency?: number }
+    chatgpt?: { status: string; latency?: number }
+    claude?: { status: string; latency?: number }
+    gemini?: { status: string; latency?: number }
+  }
 }
 
 /**

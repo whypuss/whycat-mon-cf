@@ -46,6 +46,9 @@ function buildPayloadForBroadcast(id, metrics = {}, extra = {}) {
   payload.agent_version = extra.agentVersion || metrics.agent_version || '';
   payload.last_updated = extra.timestamp || metrics.timestamp || Date.now();
   payload.timestamp = payload.last_updated;
+  if (metrics.unlocks) {
+    payload.unlocks = metrics.unlocks;
+  }
   return coerceNumericMetricFields(payload);
 }
 
