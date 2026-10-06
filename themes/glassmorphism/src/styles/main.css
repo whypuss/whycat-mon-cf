@@ -1,0 +1,6123 @@
+/*
+ * Signal 色阶：直接取自 Komari `styles/main.css` 的 --signal-1..5，
+ * 亮色、暗色与两套色觉友好变体原样移植，不映射到本主题既有的语义色。
+ * 延迟与丢包柱状图靠这套色阶分级，而不是靠柱子高度表达数值。
+ */
+:root {
+  --signal-1: #059669;
+  --signal-2: #4ade80;
+  --signal-3: #a3e635;
+  --signal-4: #facc15;
+  --signal-5: #f43f5e;
+}
+
+:root[data-theme='dark'] {
+  --signal-1: #10b981;
+  --signal-2: #4ade80;
+  --signal-3: #a3e635;
+  --signal-4: #fde047;
+  --signal-5: #fb7185;
+}
+
+:root[data-color-vision='friendly'] {
+  --signal-1: #0072b2;
+  --signal-2: #56b4e9;
+  --signal-3: #009e73;
+  --signal-4: #e69f00;
+  --signal-5: #d55e00;
+}
+
+:root[data-color-vision='friendly'][data-theme='dark'] {
+  --signal-1: #56b4e9;
+  --signal-2: #9bd7f0;
+  --signal-3: #44c7a0;
+  --signal-4: #e69f00;
+  --signal-5: #f28e5b;
+}
+
+/*
+ * 卡片表面令牌：取自 Komari 节点卡片（`.node-card` / `[data-slot='card']`）的**运行时**生效值，
+ * 即 `utils/glassTheme.ts` 的默认 `emerald` 预设写入 `--glass-light-*` / `--glass-dark-*`
+ * 之后，main.css 那条 !important 规则真正应用到页面上的颜色。
+ *
+ * 浏览器实测（Komari localhost，亮色，默认预设）：
+ *   background  rgba(241, 245, 249, 0.74)
+ *   border      1px solid rgba(203, 213, 225, 0.6)
+ *   box-shadow  rgba(15, 23, 42, 0.18) 0 8px 28px
+ *   hover 背景  #f8fafccc，hover 阴影与常态相同
+ *     （上游 hover 规则写的是 `var(--glass-light-shadow, 0 12px 38px …)`，
+ *      而 `--glass-light-shadow` 在运行时一定有值，所以那个更大的 fallback 永远不生效）
+ *
+ * 注意：这套表面**只属于节点卡片**。总览卡片在上游走的是另一条路径，见 `.overview-card`。
+ */
+:root {
+  --card-surface: rgb(241 245 249 / 74%);
+  --card-surface-hover: rgb(248 250 252 / 80%);
+  --card-surface-border: rgb(203 213 225 / 60%);
+  --card-surface-shadow: 0 8px 28px rgb(15 23 42 / 18%);
+  --card-surface-shadow-hover: 0 8px 28px rgb(15 23 42 / 18%);
+}
+
+:root[data-theme='dark'] {
+  --card-surface: rgb(13 17 26 / 85%);
+  --card-surface-hover: rgb(17 24 39 / 91%);
+  --card-surface-border: rgb(255 255 255 / 18%);
+  --card-surface-shadow: 0 8px 30px rgb(0 0 0 / 48%);
+  --card-surface-shadow-hover: 0 8px 30px rgb(0 0 0 / 48%);
+}
+
+/*
+ * Komari 的 `--background`，逐字移植。总览卡片的表面就是它的 50% 透明版本
+ * （上游类名 `bg-background/50`，hover 变成不透明的 `bg-background`）。
+ * 只服务总览卡片，页面底色仍由 `--page` 与背景层负责。
+ */
+:root {
+  --background: oklch(0.935 0.015 252);
+}
+
+:root[data-theme='dark'] {
+  --background: oklch(0.141 0.005 285.823);
+}
+
+/* 色觉友好模式下叠加纹理，使等级不只靠颜色区分。 */
+:root[data-color-vision='friendly'] .ping-signal-pattern-2 {
+  background-image: repeating-linear-gradient(135deg, transparent 0 2px, rgb(255 255 255 / 45%) 2px 3px);
+}
+
+:root[data-color-vision='friendly'] .ping-signal-pattern-3 {
+  background-image: repeating-linear-gradient(90deg, transparent 0 2px, rgb(0 0 0 / 28%) 2px 3px);
+}
+
+:root[data-color-vision='friendly'] .ping-signal-pattern-4 {
+  background-image: repeating-linear-gradient(45deg, transparent 0 1px, rgb(255 255 255 / 58%) 1px 2px);
+}
+
+:root {
+  color-scheme: light;
+  /*
+   * 逐字照抄 Komari 的 `--font-sans`，不额外追加字族。
+   * 此前多写了一个 `"Microsoft YaHei"`：在中文 Windows 上 `system-ui` 本来就解析成
+   * 微软雅黑（实测同串宽度完全相同），这一项永远轮不到，等于白写；
+   * 而在 `system-ui` 不是雅黑的系统上，它又会让本主题和上游选到不同的中文字族。
+   */
+  font-family:
+    system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --page: #dfe9f4;
+  --page-soft: #eef4f9;
+  /*
+   * 正文与次要文字对应 Komari 的 `--foreground` / `--muted-foreground`，取上游页面的计算值。
+   * 此前这里是自拟的 `#101722` / `#536274`：浏览器实测上游首页总览卡标签、详情页信息格标签、
+   * 图表卡右侧数值全是 `text-muted-foreground` = `oklch(0.34 0.02 285.938)`（约 rgb 55 55 66），
+   * 本主题同位元素是 rgb 83 98 116，浅了一大截且偏蓝。
+   */
+  --ink: oklch(0.11 0.01 285.823);
+  --muted: oklch(0.34 0.02 285.938);
+  --faint: #77879a;
+  --glass: rgb(246 249 252 / 72%);
+  --glass-strong: rgb(249 251 253 / 88%);
+  --glass-soft: rgb(234 241 248 / 62%);
+  --glass-hover: rgb(255 255 255 / 91%);
+  --glass-border: rgb(255 255 255 / 74%);
+  --line: rgb(78 102 130 / 13%);
+  --line-strong: rgb(55 80 108 / 20%);
+  --shadow: 0 18px 48px rgb(30 55 82 / 14%);
+  --shadow-soft: 0 8px 28px rgb(30 55 82 / 10%);
+  --emerald: #0f9f78;
+  --emerald-soft: rgb(15 159 120 / 13%);
+  --blue: #2d7dd2;
+  --blue-soft: rgb(45 125 210 / 12%);
+  --amber: #d88718;
+  --amber-soft: rgb(216 135 24 / 13%);
+  --red: #dc4c5a;
+  --red-soft: rgb(220 76 90 / 12%);
+  --violet: #8467d7;
+  /*
+   * Komari 的状态色与 `bg-muted`（进度条轨道），取自上游 `styles/main.css` 的 :root，
+   * 节点卡的状态点、网速、进度条、流量百分比都用它们。
+   * `--muted-base` 是基础次要色的副本：节点卡内部会把 `--muted` 换成预设色，
+   * 而上游标签边框 `border-muted-foreground/15` 用的是不受预设影响的基础色。
+   */
+  --success: oklch(0.696 0.17 162.48);
+  --warning: oklch(0.768 0.155 70);
+  --destructive: oklch(0.577 0.245 27.325);
+  --info: oklch(0.6 0.118 230);
+  --progress-track: oklch(0.967 0.001 286.375);
+  --muted-base: oklch(0.34 0.02 285.938);
+  /*
+   * Komari `--radius: 0.625rem`（10px），派生 `--radius-sm: calc(--radius - 4px)` = 6px、
+   * `--radius-md: calc(--radius - 2px)` = 8px、`--radius-xl: calc(--radius + 4px)` = 14px。
+   * 详情页的指标卡与信息卡用 `rounded-md`，节点卡用 `rounded-xl`，总览卡用 `rounded-lg`。
+   */
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  /* Komari 的 --selection：激活态强调色（分组标签、视图切换等）。 */
+  --selection: oklch(0.55 0.15 155);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --selection: oklch(0.74 0.17 162);
+  --page: #070b12;
+  --page-soft: #0b111b;
+  /* 上游深色 `--foreground` / `--muted-foreground` 的计算值。 */
+  --ink: oklch(0.985 0 0);
+  --muted: oklch(0.86 0.012 286.067);
+  --faint: #8593a5;
+  --glass: rgb(11 17 27 / 76%);
+  --glass-strong: rgb(13 20 32 / 91%);
+  --glass-soft: rgb(18 27 41 / 64%);
+  --glass-hover: rgb(20 29 44 / 94%);
+  --glass-border: rgb(255 255 255 / 13%);
+  --line: rgb(255 255 255 / 9%);
+  --line-strong: rgb(255 255 255 / 18%);
+  --shadow: 0 22px 58px rgb(0 0 0 / 38%);
+  --shadow-soft: 0 10px 32px rgb(0 0 0 / 28%);
+  --emerald: #43d3a7;
+  --emerald-soft: rgb(67 211 167 / 13%);
+  --blue: #75b7ff;
+  --blue-soft: rgb(117 183 255 / 12%);
+  --amber: #f1b457;
+  --amber-soft: rgb(241 180 87 / 14%);
+  --red: #ff7b86;
+  --red-soft: rgb(255 123 134 / 13%);
+  --violet: #b9a4ff;
+  --success: oklch(0.74 0.17 162);
+  --warning: oklch(0.79 0.16 70);
+  --destructive: oklch(0.704 0.191 22.216);
+  --info: oklch(0.68 0.13 230);
+  --progress-track: oklch(0.274 0.006 286.033);
+  --muted-base: oklch(0.86 0.012 286.067);
+}
+
+* {
+  box-sizing: border-box;
+  scrollbar-color: var(--line-strong) transparent;
+  scrollbar-width: thin;
+}
+
+/*
+ * `font-synthesis: none` 与 `text-rendering: optimizeLegibility` 是 Vite Vue 模板
+ * 自带的默认样式，上游 Komari 两条都没有（其 `@layer base` 只设 background 与
+ * font-family）。前者会关掉合成粗体——一旦某个字族缺少 Bold 实体字面，本主题就会
+ * 比上游细一档；后者在 Chrome 上等价于 auto，但同样属于上游没有的声明。
+ * 本轮按「上游令牌逐字照抄」的规则删除，实测两串宽度均无变化。
+ */
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--background);
+  color: var(--ink);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: transparent;
+}
+
+body.has-modal {
+  overflow: hidden;
+}
+
+/* 背景现在由 App.vue 挂在路由外；把负 z-index 限定在应用层内，避免落到 html 底色后面。 */
+#app {
+  position: relative;
+  isolation: isolate;
+}
+
+button,
+input,
+select {
+  color: inherit;
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[role='button']:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--emerald) 76%, white);
+  outline-offset: 2px;
+}
+
+a {
+  color: inherit;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.app-root {
+  position: relative;
+  z-index: 0;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+/*
+ * Komari App.vue：`<main class="min-h-screen">` 之后才是页脚，页脚总在一屏之后。
+ * 此前内容较短（例如详情仍在加载、只有骨架）时，页脚会贴在首屏底部，先于内容映入眼帘。
+ */
+.app-shell > main {
+  min-height: 100vh;
+}
+
+.dynamic-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Komari LoadingCover.vue, translated from its effective Tailwind utilities. */
+.loading-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 20%, rgb(148 163 184 / 12%), transparent 42%), rgb(15 23 42 / 72%);
+}
+
+:root:not([data-theme='dark']) .loading-cover {
+  background:
+    radial-gradient(circle at 50% 16%, rgb(255 255 255 / 12%), transparent 34%),
+    linear-gradient(180deg, rgb(148 163 184 / 34%), rgb(100 116 139 / 42%));
+}
+
+.loading-cover.loading-cover--custom-background {
+  background-color: rgb(15 23 42 / 8%);
+}
+
+:root:not([data-theme='dark']) .loading-cover.loading-cover--custom-background {
+  background-color: rgb(15 23 42 / 10%);
+}
+
+/*
+ * CFSM 全局 Turnstile（上游没有）：浏览中途凭据过期时，验证遮罩盖在已加载的页面上，
+ * 换用与 AppDialog 相同的遮罩（上游 Dialog overlay），让背后的卡片退后。必须写在上面的变体之后才能覆盖它们。
+ */
+.loading-cover.loading-cover--modal,
+:root:not([data-theme='dark']) .loading-cover.loading-cover--modal {
+  background: oklab(0 0 0 / 45%);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.loading-cover__indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: oklch(0.11 0.01 285.823);
+  transition: opacity 240ms ease, transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root[data-theme='dark'] .loading-cover__indicator {
+  color: oklch(0.985 0 0);
+}
+
+.loading-cover__indicator--custom,
+:root[data-theme='dark'] .loading-cover__indicator--custom {
+  color: rgb(255 255 255 / 75%);
+}
+
+.loading-cover__spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 2px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-top-color: currentColor;
+  border-radius: 9999px;
+  animation: loading-cover-spin 1s linear infinite;
+}
+
+.loading-cover__spinner--custom {
+  width: 20px;
+  height: 20px;
+}
+
+.loading-cover__text {
+  color: oklch(0.34 0.02 285.938);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+:root[data-theme='dark'] .loading-cover__text {
+  color: oklch(0.86 0.012 286.067);
+}
+
+/*
+ * CFSM 全局 Turnstile 的人机验证（上游没有）：验证期间替换遮罩里的转圈与 Loading 文字，
+ * 放在与 AppDialog 相同的面板里，冷启动和浏览中途都不受背后内容与自定义背景影响。
+ */
+.turnstile-challenge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 12px 12px;
+  border: 1px solid var(--dialog-border);
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: var(--dialog-surface);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 25%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.turnstile-challenge__text {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+/*
+ * 预留官方组件（normal 尺寸 300×65）的位置，脚本加载和组件出现时面板不跳动；
+ * line-height 归零去掉行内 iframe 下方的基线空隙。只有失败且容器仍为空（脚本没加载成功）时才收起。
+ */
+.turnstile-challenge__widget {
+  min-width: 300px;
+  min-height: 65px;
+  line-height: 0;
+}
+
+.turnstile-challenge--failed .turnstile-challenge__widget:empty {
+  display: none;
+}
+
+.turnstile-challenge__retry {
+  padding: 6px 14px;
+  border: 1px solid color-mix(in srgb, currentColor 24%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+@keyframes loading-cover-spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-cover-enter-active { transition: opacity 200ms ease-out; }
+.loading-cover-enter-from { opacity: 0; }
+.loading-cover-enter-to { opacity: 1; }
+.loading-cover-leave-active { transition: opacity 300ms ease-in; }
+.loading-cover-leave-from { opacity: 1; }
+.loading-cover-leave-to { opacity: 0; }
+
+/*
+ * 换页过渡：Komari App.vue 的 RouterView Transition 按计算值移植。
+ * 进入 `transition-all duration-300 ease-out` 自 `opacity-0 translate-y-2`，
+ * 离开 `transition-opacity duration-150 ease-in` 至 `opacity-0`，时长由 App.vue 的 `:duration` 给出。
+ * 上游的顶栏在 RouterView 之外、不参与过渡；页脚也在外面，但排在至少一屏高的 `main.min-h-screen`
+ * 之后，换页期间不会出现在屏幕里。本主题的顶栏与页脚在页面组件内：顶栏不参与过渡，与上游一致；
+ * 页脚紧跟在内容之后，内容透明时会单独露出来，所以随页面主体一起淡出淡入。
+ */
+.page-enter-active .app-shell > main,
+.page-enter-active .app-shell > footer {
+  transition: all 300ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.page-enter-from .app-shell > main,
+.page-enter-from .app-shell > footer {
+  opacity: 0;
+  translate: 0 0.5rem;
+}
+
+.page-leave-active .app-shell > main,
+.page-leave-active .app-shell > footer {
+  transition: opacity 150ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+.page-leave-to .app-shell > main,
+.page-leave-to .app-shell > footer {
+  opacity: 0;
+}
+
+/*
+ * 默认背景：Komari `Background.vue` 的 `.default-background`，样式逐条移植。
+ * 图片本身由组件用 Vite 资产 URL 注入 background-image，因此不写死路径。
+ */
+.dynamic-background__default {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+  filter: saturate(1.12) contrast(1.02);
+  transform: scale(1.01);
+  transform-origin: center;
+}
+
+:root[data-theme='dark'] .dynamic-background__default {
+  filter: brightness(0.38) saturate(0.82) contrast(1.08);
+}
+
+@media (max-width: 768px) {
+  .dynamic-background__default {
+    background-position: 50% 78%;
+    transform: scale(1.02);
+  }
+}
+
+.dynamic-background__loading {
+  position: absolute;
+  inset: 0;
+  background-color: rgb(15 23 42);
+}
+
+:root:not([data-theme='dark']) .dynamic-background__loading {
+  background:
+    radial-gradient(circle at 50% 0%, rgb(16 185 129 / 0.08), transparent 36%),
+    linear-gradient(180deg, rgb(203 213 225), rgb(148 163 184));
+}
+
+.dynamic-background__media {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.8s ease;
+}
+
+.dynamic-background__image,
+.dynamic-background__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dynamic-background__image {
+  object-position: center;
+}
+
+.dynamic-background__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.dynamic-background .fade-enter-active,
+.dynamic-background .fade-leave-active {
+  transition: opacity 0.8s ease;
+}
+
+.dynamic-background .fade-enter-from,
+.dynamic-background .fade-leave-to {
+  opacity: 0;
+}
+
+/*
+ * Round 9.95: UI 基元改用 Komari 同源的 reka-ui / vue-sonner 组件族。
+ * Tooltip 由 reka-ui 通过 Portal 渲染并自行处理定位与碰撞翻转，
+ * 因此这里只描述外观，不再手写 absolute 定位与 hover 显隐。
+ */
+.app-tooltip {
+  display: inline-flex;
+  min-width: 0;
+}
+
+.app-tooltip__bubble {
+  z-index: 120;
+  width: max-content;
+  max-width: min(260px, calc(100vw - 24px));
+  padding: 7px 9px;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--ink);
+  background: var(--glass-strong);
+  box-shadow: var(--shadow-soft);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
+  white-space: pre-line;
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+
+.app-tooltip__arrow {
+  fill: var(--glass-strong);
+}
+
+.app-tabs__list {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.app-tabs__list::-webkit-scrollbar {
+  display: none;
+}
+
+.app-tabs__trigger {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 2px;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.app-tabs__trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/*
+ * 上游 `badgeVariants` 的排版是 `h-5 … px-2 py-0.5 text-xs font-medium`：
+ * 12px / 500 / line-height 16px，连同 2px 内边距与 1px 边框正好是 `h-5`(20px)。
+ * 这里此前写成 11px / 600 / 1.5，字号小 1px、字重又被匹配到 Bold，
+ * 详情页顶栏的「在线」「生产」等徽章因此比上游更小更粗。
+ */
+.app-badge {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-badge--default {
+  color: var(--emerald);
+  background: var(--emerald-soft);
+}
+
+.app-badge--secondary {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 10%, transparent);
+}
+
+.app-badge--outline {
+  border-color: color-mix(in srgb, var(--muted) 15%, transparent);
+  color: var(--muted);
+}
+
+.app-badge--destructive {
+  color: var(--red);
+  background: var(--red-soft);
+}
+
+.app-empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 28px 18px;
+  text-align: center;
+}
+
+.app-empty__icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 10%, transparent);
+}
+
+.app-empty--error .app-empty__icon {
+  color: var(--red);
+  background: var(--red-soft);
+}
+
+.app-empty__title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.app-empty__description {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.app-toaster__spin {
+  animation: app-spin 900ms linear infinite;
+}
+
+@keyframes app-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+/*
+ * 滚动后的顶栏：上游 Header.vue 的顶栏主体是 `div`，滚动时只追加
+ * `!border-slate-500/10 backdrop-blur-lg`，**不上背景色、不上阴影**。
+ * 第 16 轮在同机 Komari 上实测（1440×900，明暗两套取值一致）：
+ *   background      rgba(0, 0, 0, 0)
+ *   backdrop-filter blur(16px)
+ *   border-bottom   1px solid oklab(0.554 -0.0100213 -0.0448951 / 0.1)
+ *   box-shadow      none
+ * 上游样式表里那条 `header { background-color: var(--glass-light-header) … }`
+ * 匹配不到任何元素——上游 src/ 内没有 <header>，运行时实测 0 个。
+ * 结论更正见 docs/todo.md TODO-03。
+ */
+.app-header--scrolled {
+  border-color: oklch(0.554 0.046 257.417 / 0.1);
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.app-header__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  width: min(100% - 32px, 1280px);
+  min-height: 56px;
+  margin: 0 auto;
+  gap: 20px;
+}
+
+.brand {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand__mark {
+  position: relative;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  background: linear-gradient(145deg, rgb(255 255 255 / 78%), rgb(255 255 255 / 18%));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 70%), var(--shadow-soft);
+}
+
+:root[data-theme='dark'] .brand__mark {
+  background: linear-gradient(145deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 3%));
+}
+
+/* 站点图标：容器已经是圆形且 overflow: hidden，这里铺满并裁成圆。 */
+.brand__mark-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 取不到站点图标时退回站点名首字。 */
+.brand__mark-initial {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+}
+
+/*
+ * 最后兜底：站点图标与站点名都没有时才出现，取值与此前固定标记相同，
+ * 避免这个位置出现一个空圆。
+ */
+.brand__mark-dot,
+.brand__mark-dot::before {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--emerald);
+  border-radius: 50%;
+  content: '';
+}
+
+.brand__mark-dot {
+  width: 7px;
+  height: 7px;
+  border: 0;
+  background: var(--blue);
+}
+
+.brand__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* 上游站点名是 `<h1 class="m-0 text-lg font-semibold">`：18px / 600 / 无负字距。 */
+.brand__copy strong {
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand__title-placeholder {
+  width: min(152px, 32vw);
+  height: 22px;
+  border-radius: 6px;
+}
+
+.brand__copy > span:not(.brand__title-placeholder) {
+  display: none;
+}
+
+.header-status {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--glass-soft);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 42%);
+  font-size: 11px;
+  font-weight: 650;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.header-status__divider {
+  width: 1px;
+  height: 12px;
+  background: var(--line-strong);
+}
+
+.status-dot,
+.node-status {
+  display: block;
+  border-radius: 50%;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+}
+
+.status-dot--online,
+/* 上游状态点是 `size-2.5 rounded-full bg-success`（离线 `bg-destructive`），没有外圈。 */
+.node-status--online {
+  background: var(--success);
+}
+
+.status-dot--pending {
+  background: var(--amber);
+  animation: status-breathe 1.2s ease-in-out infinite;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.icon-button,
+.favorite-button,
+.metadata-more {
+  display: inline-grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  transition: color 150ms ease, background-color 150ms ease, transform 150ms ease;
+}
+
+.icon-button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+
+.icon-button svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.icon-button:hover,
+.favorite-button:hover,
+.metadata-more:hover {
+  color: var(--ink);
+  background: var(--glass-soft);
+}
+
+.icon-button:disabled {
+  opacity: 0.52;
+  cursor: wait;
+}
+
+.icon-button.is-spinning svg {
+  animation: spin 900ms linear infinite;
+}
+
+.icon-button.is-active {
+  color: var(--emerald);
+  background: var(--glass-strong);
+}
+
+.dashboard {
+  width: min(100%, 1280px);
+  margin: 0 auto;
+  padding: 0 0 40px;
+}
+
+.dashboard-node-info {
+  padding-inline: 16px;
+}
+
+.eyebrow {
+  display: block;
+  margin: 0 0 4px;
+  color: var(--emerald);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass);
+  box-shadow: var(--shadow-soft);
+  font-size: 12px;
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+}
+
+.notice strong {
+  flex: 0 0 auto;
+}
+
+.notice span {
+  color: var(--muted);
+}
+
+.notice--choice {
+  justify-content: space-between;
+}
+
+.notice--choice > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.notice__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.notice__actions button {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  color: var(--text);
+  background: var(--glass-soft);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notice__actions button:hover {
+  border-color: color-mix(in srgb, var(--emerald) 48%, var(--glass-border));
+}
+
+.notice--warning {
+  border-color: color-mix(in srgb, var(--amber) 26%, transparent);
+  background: color-mix(in srgb, var(--amber-soft) 62%, var(--glass));
+}
+
+.notice--offline {
+  border-color: color-mix(in srgb, var(--red) 24%, transparent);
+  background: color-mix(in srgb, var(--red-soft) 56%, var(--glass));
+}
+
+/*
+ * Round 9.9: 总览卡片对齐 Komari NodeGeneralCards。
+ * Komari 的总览区没有独立标题块；卡片是 12 栅格中的 span-4 单元，
+ * 标签在左上、图标在右上（淡色、hover 变深），数值与单位基线对齐在卡片底部。
+ * CFSM 只替换数据来源，视觉 token 使用上游实际生效值。
+ */
+.overview-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/*
+ * 总览卡片表面与节点卡片**不同**，这一点此前搞错过。
+ *
+ * 上游 CardX 的根类是 `cn('bg-card … rounded-lg', bordered && 'border', props.class)`，
+ * 而 NodeGeneralCards 传进来的 `props.class` 含 `bg-background/50` 与 `border-none`；
+ * `cn()` 是 tailwind-merge，会把 `bg-card` 和 `border` 合并掉。
+ * 于是总览卡片根本不匹配 `.node-card / .bg-card / [data-slot='card']` 那条 !important 规则。
+ *
+ * 浏览器实测（Komari localhost，1440×900 干净加载）：
+ *   background       --background 的 50%
+ *   border           0px none
+ *   border-radius    10px（rounded-lg = --radius）
+ *   box-shadow       none
+ *   backdrop-filter  桌面 none；<768px 为 blur(8px)（backdrop-blur-sm）
+ *   hover            背景变成不透明的 --background
+ *
+ * 量测提醒：改窗口宽度后不要立刻读 backdrop-filter。上游卡片带 transition-all，
+ * resize 之后计算值会停在旧的 blur(8px)，必须在目标宽度下重新加载再量。
+ */
+.overview-card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  grid-column: span 4;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius);
+  background: color-mix(in oklab, var(--background) 50%, transparent);
+  box-shadow: none;
+  transition: background-color 170ms ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.overview-card:hover {
+  z-index: 2;
+  background: var(--background);
+}
+
+/* 上游剩余价值卡带 `cursor-pointer`，可以点开「价值与费用明细」。焦点环沿用全局的 [role='button'] 规则。 */
+.overview-card.is-actionable {
+  cursor: pointer;
+}
+
+.overview-card__head {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.overview-card__label {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.05em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * 上游图标走的是固定的 `text-slate-500/20` + `group-hover:text-slate-500`，
+ * 没有明暗变体，也不是 --muted。第 16 轮同机实测上游常态
+ * oklab(0.554 -0.0100213 -0.0448951 / 0.2)、悬浮 oklch(0.554 0.046 257.417)，此处原样移植。
+ */
+.overview-card__icon {
+  flex: none;
+  color: oklch(0.554 0.046 257.417 / 0.2);
+  transition: color 160ms ease;
+}
+
+.overview-card:hover .overview-card__icon {
+  color: oklch(0.554 0.046 257.417);
+}
+
+/*
+ * 数值行必须是它自己的 flex 容器。上游把 `flex items-baseline gap-1 min-w-0` 写在
+ * DataTooltip **内部**的 div 上，提示层只负责定位；本主题一度把这个类交给 AppTooltip
+ * 的透传属性承担，而 AppTooltip 的根节点是只渲染插槽的 TooltipProvider，属性落不到
+ * 任何元素上——第 16 轮实测该类在页面里命中 0 个元素，数值行退回 .app-tooltip 的
+ * inline-flex（align-items 为 stretch、无 gap），单位基线比主数值高 9px、间距为 0。
+ */
+.overview-card__value {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 4px;
+}
+
+/*
+ * 有提示时 AppTooltip 触发器是数值行外面的一层，必须保持布局中性：
+ * 上游那层是 `relative inline-block min-w-0`，作为 column flex 子项会被块化并拉满整行，
+ * 所以这里用 display: block 覆盖 .app-tooltip 的 inline-flex。
+ * 无提示分支不生成这层，但两条分支的数值行结构与类名完全一致。
+ */
+.overview-card__value-slot {
+  display: block;
+  min-width: 0;
+}
+
+.overview-card__number {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * 上游总览卡片的单位是 `text-[11px] md:text-xs font-medium text-muted-foreground truncate`：
+ * 只有 `truncate`，**没有** `shrink-0`，也没有宽度上限，因此它和主数值一起按内容分配空间。
+ *
+ * 此前这里写了 `flex: none` + `max-width: 60%`，等于把单位钉死并硬性占掉六成宽度，
+ * 主数值只能拿剩下的四成——768px 档实测 `455.0` 被截成 `45…`、`GB / 1.56 TB` 也被截断，
+ * 而同宽度下上游能显示更多位数。这是第 14 轮修掉的 BUG-004。
+ *
+ * 注意详情页指标卡的单位是另一套：上游那边写的是 `shrink-0`，所以
+ * `.detail-metric-card__value > em` 保持 `flex: none`，两者不要互相套用。
+ */
+.overview-card__unit {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  /* 上游 text-[11px] 只设字号、行高按 1.5 解析，实测 16.5px；≥768px 的 text-xs 是 16px。 */
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .overview-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .overview-card__number {
+    font-size: 24px;
+  }
+
+  .overview-card__unit {
+    font-size: 12px;
+    line-height: 16px;
+  }
+}
+
+.settings-field small,
+.settings-switch small {
+  overflow-wrap: anywhere;
+}
+
+.dashboard-controls {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+/* 与 Komari 的 home-controls-scroll 一致：分组与快捷控制整体横向滚动。 */
+.dashboard-controls__scroll {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border-radius: 6px;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.dashboard-controls__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.dashboard-controls__scroll-inner {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-switch {
+  display: flex;
+  height: 32px;
+  flex: none;
+  align-items: center;
+  padding: 3px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--glass-soft);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.tool-switch button {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  transition: color 140ms ease, background-color 140ms ease;
+}
+
+.tool-switch button:hover,
+.tool-switch button.is-active {
+  color: var(--selection);
+  background: var(--glass-strong);
+}
+
+.group-tabs,
+.quick-controls {
+  flex: none;
+}
+
+.group-tabs .app-tabs__list {
+  width: max-content;
+  gap: 5px;
+  height: 32px;
+  padding: 3px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--glass-soft);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.quick-controls button,
+.view-switch button {
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.group-tabs .app-tabs__trigger {
+  min-height: 26px;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+/*
+ * 这三类控件此前统一用 `--glass-strong`，上游其实各不相同。
+ * 取值来自 Komari `bf83765` 的真实交互实测（1440×900，翡翠预设，浅色）：
+ *
+ *   悬浮（三类都是）  背景 transparent、无阴影，只把文字压深到 `--foreground`
+ *   快捷筛选 · 激活   `rgba(226,232,240,0.76)`（= 预设 control 令牌）
+ *                     + `blur(14px) saturate(145%)` + 预设文字色 + shadow-sm
+ *   分组标签 · 激活   不透明 `--background` + `--selection`，无 backdrop
+ *   视图切换 · 激活   不透明 `--background` + `--selection`
+ *
+ * 快捷筛选是上游 `.bg-background` 在首页唯一命中的元素，所以也是唯一跟随配色预设的
+ * 控件；视图切换与首页工具按钮用的是 `!bg-background`，类名不同，不吃预设。
+ * 视图切换激活态上游还带 `blur(4px)`，但底色不透明时它不产生可见效果，这里不加，
+ * 以免多一层无用的合成层。
+ */
+.group-tabs .app-tabs__trigger:hover,
+.quick-controls button:hover,
+.view-switch button:hover {
+  color: var(--ink);
+}
+
+.quick-controls button.is-active {
+  color: var(--glass-text, var(--ink));
+  background: var(--control-surface, var(--glass-strong));
+  box-shadow: 0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%);
+  backdrop-filter: blur(14px) saturate(145%);
+  -webkit-backdrop-filter: blur(14px) saturate(145%);
+}
+
+.view-switch button.is-active,
+.group-tabs .app-tabs__trigger[data-state='active'] {
+  color: var(--selection);
+  background: var(--background);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 10%), 0 1px 2px -1px rgb(0 0 0 / 10%);
+}
+
+.dashboard-controls__actions,
+.quick-controls {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.quick-controls {
+  max-width: 100%;
+  gap: 5px;
+  height: 32px;
+  padding: 3px;
+  overflow-x: auto;
+  border: 0;
+  border-radius: 6px;
+  background: var(--glass-soft);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.quick-controls button {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.quick-controls button:first-child span {
+  color: var(--amber);
+}
+
+.quick-controls small {
+  display: inline-grid;
+  min-width: 17px;
+  height: 17px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--line);
+  font-size: 9px;
+}
+
+.quick-controls__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+.dashboard-controls__actions {
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.search-field,
+.view-switch {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-soft);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.search-field {
+  position: relative;
+  display: flex;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  align-items: center;
+  border: 0;
+  border-radius: 6px;
+  transition: width 180ms ease;
+}
+
+.search-field .app-icon {
+  position: absolute;
+  left: 9px;
+  color: var(--faint);
+}
+
+.search-field input {
+  width: 100%;
+  height: 100%;
+  padding: 0 9px 0 30px;
+  border: 0;
+  outline: 0;
+  color: var(--ink);
+  background: transparent;
+  font-size: 11px;
+}
+
+.search-field input::placeholder {
+  color: transparent;
+}
+
+.search-field:focus-within,
+.search-field.is-expanded {
+  width: min(240px, 32vw);
+}
+
+.search-field:focus-within input::placeholder,
+.search-field.is-expanded input::placeholder {
+  color: var(--faint);
+}
+
+.view-switch {
+  display: flex;
+  height: 32px;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 0;
+  border-radius: 6px;
+}
+
+.view-switch button {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 4px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+/*
+ * 节点网格对齐 Komari 的 nodeCardGridClass：
+ * 单列起步，640px（sm）以上才按卡片密度 auto-fill；
+ * 宽度 mini 270 / compact 300 / comfortable 360 / large 420，
+ * gap 依次为 12 / 12 / 16 / 20。
+ */
+.server-grid,
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .server-grid--size-mini {
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  }
+
+  .server-grid--size-compact,
+  .skeleton-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+
+/*
+ * Round 9.9: 节点卡片对齐 Komari NodeCard。
+ * 区块顺序：状态点 + 名称 / 收藏 + OS + 旗帜 / 运行与价格芯片 /
+ * CPU·内存·硬盘·流量四项进度 / 网速·总流量·剩余或负载三列指标盒 /
+ * 延迟与丢包双面板 / 自定义标签 / 离线遮罩。
+ */
+/*
+ * 上游只在玻璃卡片内部（`.node-card` / `.bg-card` / `[data-slot='card']` / `.bg-background`）
+ * 用配色预设的文字色覆盖 `--foreground` / `--muted-foreground`；总览卡与详情页卡片是
+ * `bg-background/50`，不在这组选择器里，用的是基础色。节点卡对应上游的 `.node-card`，
+ * 在这里接管预设色，其余地方保持基础色。
+ */
+.node-card {
+  --ink: var(--glass-text, oklch(0.11 0.01 285.823));
+  --muted: var(--glass-muted-text, oklch(0.34 0.02 285.938));
+  color: var(--ink);
+}
+
+.node-card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid var(--node-card-border, var(--card-surface-border));
+  /* Komari NodeCard 用 rounded-xl，即 --radius + 4px = 14px。 */
+  border-radius: 14px;
+  background: var(--node-card-surface, var(--card-surface));
+  box-shadow: var(--node-card-shadow, var(--card-surface-shadow));
+  cursor: pointer;
+  transition: box-shadow 200ms ease, background-color 200ms ease, transform 200ms ease;
+  backdrop-filter: blur(14px) saturate(145%);
+  -webkit-backdrop-filter: blur(14px) saturate(145%);
+}
+
+/*
+ * 卡片切换：Komari HomeView 的 node-card-switch（TransitionGroup）逐项移植，进场、离场、换位都照搬。
+ * 上游把过渡放在包裹卡片的 div 上；这里作用在卡片根元素，所以加 `.node-card` 提高优先级，
+ * 盖过卡片自身的悬停过渡。离场的卡片与上游一样在淡出期间仍然占位，淡出结束后其余卡片
+ * 按 move 过渡滑到新位置；按实时指标排序换位时同样滑动。
+ */
+.node-card.node-card-switch-enter-active,
+.node-card.node-card-switch-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 180ms ease;
+}
+
+.node-card.node-card-switch-enter-active {
+  transition-delay: var(--node-item-delay, 0ms);
+}
+
+.node-card.node-card-switch-move {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.node-card.node-card-switch-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.985);
+  filter: blur(3px);
+}
+
+.node-card.node-card-switch-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.99);
+  filter: blur(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node-card.node-card-switch-enter-active,
+  .node-card.node-card-switch-leave-active,
+  .node-card.node-card-switch-move {
+    transition: none;
+    transition-delay: 0ms;
+  }
+
+  .node-card.node-card-switch-enter-from,
+  .node-card.node-card-switch-leave-to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.node-card:hover,
+.node-card:focus-visible {
+  background: var(--node-card-surface-hover, var(--card-surface-hover));
+  box-shadow: var(--node-card-shadow, var(--card-surface-shadow-hover));
+}
+
+/*
+ * 上游节点卡的盒模型（1440 实测）：卡片本身 padding 0、无 gap，
+ * 头部是 `px-4 py-3`（12px 16px，min-height 44），主体是 `p-4 pt-0`（0 16px 16px）。
+ * 本主题此前用卡片级 14px 内边距 + 12px gap 近似，横向内容宽度因此比上游多 4px，
+ * 纵向也靠这份多余内边距去抵消偏小的文字行盒。行盒补齐后必须同步改回上游的盒模型，
+ * 否则卡片总高会从 +1.94px 变成 +8.88px。其余尺寸档（comfortable / large）仍用旧值，
+ * 留待 Test 2 一并处理。
+ */
+.node-card--compact {
+  gap: 0;
+  padding: 0;
+}
+
+.node-card--compact .node-card__header {
+  min-height: 44px;
+  padding: 12px 16px;
+}
+
+/* 上游头部内容高 20px（旗帜 size-5、收藏按钮 size-5）。 */
+.node-card--compact .favorite-button {
+  width: 20px;
+  height: 20px;
+}
+
+.node-card--compact .node-card__body {
+  padding: 0 16px 16px;
+}
+
+/* 上游这一行带 `-mt-1`（-4px），mini 档早就照抄了，compact 档漏了。 */
+.node-card--compact .node-card__chips {
+  margin-top: -4px;
+}
+
+/*
+ * 上游模板给离线卡写了 `!shadow-destructive/30` 的红圈，但玻璃主题对 `.node-card`
+ * 的 `box-shadow: … !important` 会覆盖它：实测上游离线卡只有普通卡片阴影，没有红圈。
+ * 本主题此前照模板画了红圈，与上游实际页面不符，这里不再单独设置阴影。
+ */
+
+.node-card--mini {
+  gap: 0;
+  padding: 0;
+}
+
+.node-card--mini .node-card__header {
+  min-height: 44px;
+  padding: 12px 16px;
+}
+
+.node-card--mini .favorite-button {
+  width: 20px;
+  height: 20px;
+}
+
+.node-card--mini .node-card__body {
+  padding: 0 16px 8px;
+}
+
+.node-card--mini .node-card__chips {
+  height: 19px;
+  margin-top: -4px;
+}
+
+/*
+ * 舒适档与 compact 同样走上游 CardX 的 `medium`，盒模型完全一致，
+ * 唯一的区别是延迟 / 丢包面板由 `h-11`(44px) 变成 `h-12`(48px)。
+ * 此前这一档沿用卡片级 14px 内边距 + 12px gap，1440 实测比上游高 4px。
+ */
+.node-card--comfortable {
+  gap: 0;
+  padding: 0;
+}
+
+.node-card--comfortable .node-card__header {
+  min-height: 44px;
+  padding: 12px 16px;
+}
+
+.node-card--comfortable .favorite-button {
+  width: 20px;
+  height: 20px;
+}
+
+.node-card--comfortable .node-card__body {
+  padding: 0 16px 16px;
+}
+
+.node-card--comfortable .node-card__chips {
+  margin-top: -4px;
+}
+
+.node-card--comfortable .node-probe {
+  min-height: 48px;
+}
+
+/*
+ * 宽松档是上游唯一使用 CardX `large` 的尺寸：头部 `px-6 py-4`（52px）、
+ * 主体 `p-6 pt-0`（24px）、内容行距 `gap-4`（16px）、面板 `h-14`（56px）。
+ * 此前这一档只把卡片内边距改成 20px，1440 实测比上游矮 36px。
+ */
+.node-card--large {
+  gap: 0;
+  padding: 0;
+}
+
+.node-card--large .node-card__header {
+  min-height: 52px;
+  padding: 16px 24px;
+}
+
+.node-card--large .favorite-button {
+  width: 20px;
+  height: 20px;
+}
+
+.node-card--large .node-card__body {
+  gap: 16px;
+  padding: 0 24px 24px;
+}
+
+.node-card--large .node-card__chips {
+  margin-top: -4px;
+}
+
+.node-card--large .node-probe {
+  min-height: 56px;
+}
+
+.node-card__header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.node-card__identity {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+}
+
+.node-card__name {
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-card__header-extra {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.node-card__os {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.node-card__flag {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.node-card__body {
+  display: flex;
+  position: relative;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.node-card--mini .node-card__body {
+  gap: 8px;
+}
+
+.node-card__chips {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.node-chip {
+  overflow: hidden;
+  flex: none;
+  max-width: 100%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--muted);
+  /* 上游 `bg-slate-500/10`。 */
+  background: color-mix(in oklab, oklch(0.554 0.046 257.417) 10%, transparent);
+  font-size: 11px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+/*
+ * 上游 mini 档的指标区是另一套结构：`grid-cols-[3fr_2fr] gap-x-4 gap-y-2`，
+ * 左栏再分 `grid-cols-2 gap-x-3 gap-y-1` 放 CPU / 内存（只有图标，没有文字标签），
+ * 内存用量占满左栏两列；右栏是带「流量」文字的流量。
+ * 此前本主题用 `3fr 3fr 4fr` 三列并保留 CPU / 内存文字，303px 卡片上被截成「C...」「内.」。
+ */
+.node-metrics--mini {
+  grid-template-columns: 3fr 2fr;
+  gap: 8px 16px;
+}
+
+.node-metrics__pair {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+}
+
+.node-metrics__pair > .node-metric__hint {
+  grid-column: 1 / -1;
+}
+
+.node-metric {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.node-metric__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12px;
+}
+
+/*
+ * 第二阶段 Test 1：节点卡内部逐行对照上游（1440 浅色，同一浏览器）。
+ * 上游各行高 19 / 97.41 / 45.41 / 44 / 20，本主题原为 18.84 / 92 / 45.41 / 45 / 18.5——
+ * gap 早已一致，差的是文字行盒：上游 12px 文本 line-height 16、11px 文本 15.7143，
+ * 本主题写的是 normal（15 与 14）。这里成组补齐这几条行高与徽章高度，
+ * 不做全局 normal 替换，也不用 transform / 负 margin 抵消。
+ */
+.node-metric__label {
+  display: inline-flex;
+  line-height: 16px;
+  overflow: hidden;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+}
+
+.node-metric__label > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * 上游标签是 `text-muted-foreground`，只有图标着色：`text-sky-500` / `text-emerald-500` /
+ * `text-orange-500` / `text-violet-500`（Tailwind v4 500 档，实测计算值）。
+ * 此前本主题把文字也染成了指标色，而且用的是自拟的 --blue / --emerald / --amber / --violet。
+ */
+.node-metric__label--cpu > .app-icon {
+  color: oklch(0.685 0.169 237.323);
+}
+
+.node-metric__label--memory > .app-icon {
+  color: oklch(0.696 0.17 162.48);
+}
+
+.node-metric__label--disk > .app-icon {
+  color: oklch(0.705 0.213 47.604);
+}
+
+.node-metric__label--traffic > .app-icon {
+  color: oklch(0.606 0.25 292.717);
+}
+
+/* 上游 `trafficPercentageClass`：无配额 muted，≥95 destructive，≥60 warning，其余 success。 */
+.node-metric__value--success {
+  color: var(--success);
+}
+
+.node-metric__value--warning {
+  color: var(--warning);
+}
+
+.node-metric__value--danger {
+  color: var(--destructive);
+}
+
+.node-metric__value--muted {
+  color: var(--muted);
+}
+
+/*
+ * 上游 `NodeCard` 的指标数值是 `tabular-nums font-medium`——**500**，不是 600。
+ * Segoe UI / 微软雅黑 只有 Regular 与 Bold 两档实体字面，CSS 字重匹配会把
+ * 500 落到 Regular、把 600 落到 Bold，于是这里多写的 100 直接让整列数字变粗体：
+ * 12px「17.0%」实测 36.8px（600）对 34.68px（500）。字重要照抄上游。
+ */
+.node-metric__value {
+  flex: none;
+  font-weight: 500;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 上游提示行是 `text-[11px] text-muted-foreground`，流量用量 ≥95% 时换成 `text-destructive`。 */
+.node-metric__hint {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 15.7143px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-metric__hint--danger {
+  color: var(--destructive);
+}
+
+.node-boxes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.node-box {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  /*
+   * 上游盒子与延迟 / 丢包面板都是 `bg-slate-500/5`，玻璃主题把它覆盖成
+   * 亮色 `rgb(255 255 255 / 15%)`、暗色 `rgb(255 255 255 / 5%)`（与详情页信息格同一条规则）。
+   */
+  background: rgb(255 255 255 / 15%);
+}
+
+:root[data-theme='dark'] .node-box,
+:root[data-theme='dark'] .node-probe {
+  background: rgb(255 255 255 / 5%);
+}
+
+/*
+ * 上游只有盒子（`.node-box`）带 `overflow-hidden`，行本身**不裁切**；
+ * 单文本行由内部文字 span 自己 `truncate`（这里是 `.node-box__text`）。
+ * 本主题此前在行上多加了一层 `overflow: hidden`，于是行内容一旦超出 74px
+ * 的行宽就在行边上被裁掉，而上游允许它伸进盒子右侧 6px 内边距、
+ * 到盒子内边距外沿才裁——「剩余 1653 天」在上游完整、在本主题被削掉「天」的右半。
+ */
+.node-box__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4286;
+  white-space: nowrap;
+}
+
+.node-box__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-box__fixed-text {
+  flex: none;
+}
+
+.node-box__number {
+  font-variant-numeric: tabular-nums;
+}
+
+.node-box__row--warning {
+  color: var(--warning);
+}
+
+.node-box__row--danger {
+  color: var(--destructive);
+}
+
+.node-card--mini .node-box {
+  padding: 4px;
+}
+
+.node-card--compact .node-box {
+  padding: 6px;
+}
+
+/*
+ * 上游第三个盒子（剩余天数 / 剩余价值）的两行用 `gap-0.5`（2px），
+ * 前两个盒子才是 `gap-1`（4px）。本主题原先三个盒子统一 4px，
+ * 三个间隙多占 6px——303px 卡片上「剩余 1653 天」需 81.81px 而只有 74px 可用，
+ * 四个 span 又都是 `flex: 0 0 auto` 且无省略号，于是直接切在字形中间。
+ */
+.node-box__row--remaining {
+  gap: 2px;
+}
+
+/* 上游上行是 `text-success`，下行是 `text-blue-600`（深浅模式同一个值）。 */
+.node-box__row--up {
+  color: var(--success);
+}
+
+.node-box__row--down {
+  color: oklch(0.546 0.245 262.881);
+}
+
+.node-probes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+/* 上游延迟/丢包面板：padding 8px、gap 6px、头部与柱区各 11px，总高 44。 */
+.node-probe {
+  display: flex;
+  min-width: 0;
+  min-height: 44px;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 15%);
+}
+
+/* 上游离线时两块面板是 `blur-xs opacity-50`（实测 blur(4px) / 0.5）。 */
+.node-card--offline .node-probe {
+  opacity: 0.5;
+  filter: blur(4px);
+}
+
+.node-card--mini .node-probe {
+  min-height: 28px;
+  gap: 4px;
+  padding: 4px;
+}
+
+.node-card--mini .node-probe__bars {
+  min-height: 5px;
+}
+
+.node-probe__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1;
+}
+
+/*
+ * 上游延迟 / 丢包面板的数值是 `<span class="font-medium">`：**500**，且**没有**
+ * `tabular-nums`，颜色也走继承的 foreground。这里此前写成 600 + tabular-nums，
+ * 600 会被字重匹配落到 Bold，11px「21.0 ms」实测 43.01px 对 40.66px。
+ */
+.node-probe__value {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+/*
+ * 与 Komari 一致：柱子满高、等宽，数值由 signal 色阶表达。
+ * hover 时整条面板提亮，单根柱纵向放大，和上游的 scale-y-160 一致。
+ */
+/* 上游柱区实测 11px 高（面板 44 = 8+11+6+11+8）。 */
+.node-probe__bars {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  align-items: end;
+  gap: 1px;
+  min-height: 11px;
+  opacity: 0.8;
+}
+
+.node-probe:hover .node-probe__bars {
+  opacity: 1;
+}
+
+.node-probe__bars span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 1px;
+  transition: transform 150ms ease;
+}
+
+.node-probe__bars span:hover {
+  transform: scaleY(1.6);
+}
+
+.node-probe__bars .is-signal-1 { background: var(--signal-1); }
+.node-probe__bars .is-signal-2 { background: var(--signal-2); }
+.node-probe__bars .is-signal-3 { background: var(--signal-3); }
+.node-probe__bars .is-signal-4 { background: var(--signal-4); }
+.node-probe__bars .is-signal-5 { background: var(--signal-5); }
+
+/*
+ * 上游有两档中性色，不能混用：
+ * `bg-muted-foreground/10` 是整段无数据时的占位柱（`buildEmptyPingBars`），
+ * `bg-muted-foreground/15` 是序列**中间**某个时间桶没有采样时的空洞柱
+ * （`buildPingBars` 里 `value === null` 的分支）。
+ * 空洞必须留在原位，否则后面的柱子会整体前移，时间轴随之错位。
+ */
+.node-probe__bars .is-empty {
+  background: color-mix(in srgb, var(--muted) 10%, transparent);
+}
+
+.node-probe__bars .is-gap {
+  background: color-mix(in srgb, var(--muted) 15%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node-probe__bars span:hover {
+    transform: none;
+  }
+}
+
+.node-tags {
+  display: flex;
+  max-height: 47px;
+  flex-wrap: wrap;
+  gap: 4px;
+  overflow: hidden;
+}
+
+/* 上游节点卡标签是 Badge 的 `h-5`：固定 20px 高。 */
+.node-tag {
+  display: inline-flex;
+  height: 20px;
+  max-width: 150px;
+  align-items: center;
+  padding: 0 8px;
+  overflow: hidden;
+  /* 上游 `border-muted-foreground/15`：边框取基础次要色，不随配色预设变。 */
+  border: 1px solid color-mix(in oklab, var(--muted-base) 15%, transparent);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-card--mini .node-tag {
+  min-height: 20px;
+}
+
+/*
+ * 上游离线遮罩是内容列上的 `absolute inset-0 rounded-xl bg-white/20 dark:bg-black/20
+ * backdrop-blur-[2px]`：只盖内容区，不盖头部，也不越过卡片内边距（实测与内容列同框）。
+ * 此前的 `inset: -14px` 是 Test 1 改盒模型之前按 14px 卡片内边距写的，
+ * 现在会向左右与底部多伸 13px，并压住头部底部 14px。
+ */
+.node-card__offline {
+  display: flex;
+  position: absolute;
+  inset: 0 16px 16px;
+  z-index: 10;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 20%);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+:root[data-theme='dark'] .node-card__offline {
+  background: rgb(0 0 0 / 20%);
+}
+
+.node-card--mini .node-card__offline {
+  bottom: 8px;
+}
+
+/* `text-sm font-semibold text-destructive` 与 `text-[11px] text-muted-foreground mt-1`。 */
+.node-card__offline strong {
+  color: var(--destructive);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.node-card__offline span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.node-status-wrap {
+  position: relative;
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+}
+
+.node-status {
+  position: absolute;
+  inset: 0;
+  width: 9px;
+  height: 9px;
+}
+
+.node-status--offline {
+  background: var(--destructive);
+}
+
+.node-status-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0.48;
+  animation: node-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.node-status-pulse--online {
+  background: var(--success);
+}
+
+.node-status-pulse--offline {
+  background: var(--destructive);
+}
+
+.favorite-button {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  font-size: 16px;
+}
+
+.favorite-button.is-favorite,
+.icon-button.is-favorite {
+  color: var(--amber);
+}
+
+.tag-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  max-height: 47px;
+  flex-wrap: wrap;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.tag {
+  display: inline-flex;
+  max-width: 150px;
+  align-items: center;
+  min-height: 19px;
+  padding: 2px 7px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--glass-soft) 82%, transparent);
+  font-size: 9px;
+  font-weight: 620;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resource-meter__track {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 99px;
+  /* 上游轨道是 `bg-muted`（实测 oklch(0.967 0.001 286.375)）。 */
+  background: var(--progress-track);
+}
+
+/*
+ * 上游填充是纯色：`bg-success` / `bg-warning` / `bg-destructive` / `bg-info`。
+ * 此前这里是自拟的渐变（翡翠→蓝、琥珀、红），与上游页面实测不同。
+ */
+.resource-meter__fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--success);
+  transition: width 300ms ease-out;
+}
+
+.resource-meter__fill--success {
+  background: var(--success);
+}
+
+.resource-meter__fill--warning {
+  background: var(--warning);
+}
+
+.resource-meter__fill--error {
+  background: var(--destructive);
+}
+
+.resource-meter__fill--info {
+  background: var(--info);
+}
+
+.resource-meter__fill--neutral {
+  background: var(--line-strong);
+}
+
+.server-grid--dense .node-card {
+  content-visibility: auto;
+  contain: layout paint style;
+  contain-intrinsic-size: 0 330px;
+}
+
+/*
+ * Round 9.9: 节点列表对齐 Komari NodeList。
+ * 与上游一致采用栅格行而非 <table>，列宽固定为
+ * 状态 / 系统 / 节点 / 信息 / 运行时间 / CPU / 内存 / 硬盘 / 流量 / 速率。
+ */
+.node-list {
+  min-width: 0;
+  margin: -4px;
+  padding: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.node-list__inner {
+  display: flex;
+  width: 100%;
+  min-width: fit-content;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.node-list__head {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  /* Komari NodeList 表头与行使用 rounded-lg（8px）。 */
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--glass) 70%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.node-list__heading {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-list__heading--center {
+  text-align: center;
+}
+
+.node-list__row {
+  display: flex;
+  height: 64px;
+  min-height: 64px;
+  max-height: 64px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 10px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--glass) 40%, transparent);
+  box-shadow: 0 0 0 2px transparent;
+  cursor: pointer;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.node-list__row:hover,
+.node-list__row:focus-visible {
+  background: color-mix(in srgb, var(--glass) 70%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--muted) 10%, transparent);
+}
+
+.node-list__row--offline {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--red) 10%, transparent);
+}
+
+/*
+ * 列表行切换：Komari NodeList 的 node-row-switch（TransitionGroup）逐项移植。上游写在组件的
+ * scoped 样式里；这里加 `.node-list__row` 提高优先级，盖过行自身的悬停过渡。
+ */
+.node-list__row.node-row-switch-enter-active,
+.node-list__row.node-row-switch-leave-active {
+  transition:
+    opacity 170ms ease,
+    transform 210ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 170ms ease;
+}
+
+.node-list__row.node-row-switch-enter-active {
+  transition-delay: var(--node-row-delay, 0ms);
+}
+
+.node-list__row.node-row-switch-move {
+  transition: transform 210ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.node-list__row.node-row-switch-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+  filter: blur(3px);
+}
+
+.node-list__row.node-row-switch-leave-to {
+  opacity: 0;
+  transform: translateY(-5px);
+  filter: blur(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node-list__row.node-row-switch-enter-active,
+  .node-list__row.node-row-switch-leave-active,
+  .node-list__row.node-row-switch-move {
+    transition: none;
+    transition-delay: 0ms;
+  }
+
+  .node-list__row.node-row-switch-enter-from,
+  .node-list__row.node-row-switch-leave-to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.node-list__cells {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.node-list__cell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.node-list__cell--center {
+  align-items: center;
+  justify-content: center;
+}
+
+.node-list__os {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.node-list__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.node-list__flag {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.node-list__name {
+  overflow: hidden;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-list__sub {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-list__sub--up {
+  color: var(--emerald);
+}
+
+.node-list__sub--down {
+  color: var(--blue);
+}
+
+.node-list__cell--metadata {
+  display: flex;
+  max-height: 44px;
+  align-items: center;
+  flex-flow: row wrap;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.node-list__badge {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  overflow: hidden;
+  border-radius: 6px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 10%, transparent);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.node-list__badge img {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+.node-list__badge span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-list__cell--metric {
+  gap: 4px;
+}
+
+.node-list__metric-value {
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.state-panel {
+  display: grid;
+  min-height: 250px;
+  place-items: center;
+  align-content: center;
+  padding: 34px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass);
+  box-shadow: var(--shadow);
+  text-align: center;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.state-panel--compact {
+  min-height: 190px;
+}
+
+.state-panel--error {
+  border-color: color-mix(in srgb, var(--red) 28%, var(--glass-border));
+}
+
+.state-panel__icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  margin-bottom: 8px;
+  border-radius: 15px;
+  color: var(--emerald);
+  background: var(--emerald-soft);
+  font-size: 18px;
+  font-weight: 780;
+}
+
+.state-panel--error .state-panel__icon {
+  color: var(--red);
+  background: var(--red-soft);
+}
+
+.state-panel h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.state-panel p {
+  max-width: 480px;
+  margin: 7px 0 13px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.state-panel button {
+  padding: 7px 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: 9px;
+  color: var(--ink);
+  background: var(--glass-strong);
+  font-size: 10px;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+/*
+ * 节点数据加载失败时的「重新加载」跟随配色方案。
+ *
+ * 上游在首次拉取节点失败时显示连接失败提示，里面的描边「重试」按钮自带 `bg-background`，
+ * 是配色方案 `.bg-background` 规则的真实消费者：底色取控制色，文字取方案文字色；
+ * 规则带 `!important`，悬浮时这两项也不变。边框、圆角、尺寸与阴影不随方案变化，
+ * 这里保持本主题原样，面板本身的红色边框照旧承担警示。
+ * 同一面板里的「返回首页」、图表的「重试」、设置页的「重新读取」在上游没有对应的
+ * 消费者，不接入。
+ */
+.state-panel button.state-panel__retry {
+  color: var(--glass-text, var(--ink));
+  background: var(--control-surface, var(--glass-strong));
+  backdrop-filter: blur(14px) saturate(145%);
+  -webkit-backdrop-filter: blur(14px) saturate(145%);
+}
+
+.skeleton {
+  display: block;
+  overflow: hidden;
+  border-radius: 13px;
+  background: linear-gradient(100deg, var(--glass-soft) 30%, var(--glass-hover) 50%, var(--glass-soft) 70%);
+  background-size: 220% 100%;
+  animation: skeleton-shimmer 1.4s linear infinite;
+}
+
+.skeleton--line {
+  width: 150px;
+  height: 24px;
+}
+
+.skeleton--overview {
+  min-height: 88px;
+  grid-column: span 4;
+}
+
+.skeleton-grid {
+  margin-top: 14px;
+}
+
+.skeleton--card {
+  min-height: 320px;
+}
+
+/*
+ * 页脚：Komari `Footer.vue` 的计算样式。外层 `w-full max-w-[1280px] mx-auto p-4` 与内层
+ * `flex flex-row justify-between gap-4 text-xs text-muted-foreground` 合在同一个元素上。
+ * 左段对应 `flex gap-1 items-center`，右段对应 `flex flex-wrap gap-1 items-center justify-end text-right`。
+ * 链接文字是 `font-medium text-foreground`，悬停为 `hover:opacity-80`（`transition-opacity`，150ms）。
+ * 上游没有响应式变体。它的两段短文字在手机宽度也能各占一行的一半。
+ * 文字内容仍按规格第 82 节归因到 CF-Server-Monitor（审计矩阵 23），这里只对齐样式（矩阵 38）。
+ * 这段归因带版本号，比上游长。唯一的适配：外层允许换行。
+ * 放不下时右段整体移到下一行，由 `space-between` 排到行首，两行左对齐；
+ * 不在「Powered by」这类词组中间折行。放得下时与上游完全相同。
+ * `margin-top: auto` 保留本主题短页面把页脚压在底部的布局。
+ */
+.app-footer {
+  display: flex;
+  width: 100%;
+  max-width: 1280px;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  gap: 16px;
+  margin: auto auto 0;
+  padding: 16px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.app-footer > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-footer > span:last-child {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.app-footer a {
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-footer a:hover {
+  opacity: 0.8;
+}
+
+.metadata-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  gap: 0 18px;
+}
+
+.metadata-list > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 8px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 9px;
+}
+
+.metadata-list dt {
+  color: var(--faint);
+}
+
+.metadata-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+@keyframes node-ping {
+  75%, 100% { opacity: 0; transform: scale(2.5); }
+}
+
+@keyframes status-breathe {
+  50% { opacity: 0.45; transform: scale(0.82); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes skeleton-shimmer {
+  to { background-position: -220% 0; }
+}
+
+@media (max-width: 1100px) {
+  .dashboard-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-controls__filters {
+    width: 100%;
+  }
+
+  .dashboard-controls__actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header__inner {
+    width: min(100% - 24px, 1280px);
+  }
+
+  .dashboard {
+    width: min(100%, 1280px);
+  }
+
+  .app-header__inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 56px;
+    gap: 8px;
+  }
+
+  .header-status {
+    display: none;
+  }
+
+  .dashboard-controls__actions {
+    flex-wrap: wrap;
+  }
+
+  .search-field {
+    width: calc(100% - 116px);
+    flex: 1 1 220px;
+  }
+
+  .result-count {
+    order: 4;
+  }
+
+  /*
+   * 与 Komari 一致：窄屏不把栅格拆成堆叠卡片，而是保留列结构并允许
+   * 列表容器横向滚动，避免行高与列语义在移动端漂移。
+   */
+  .node-list {
+    scroll-snap-type: x proximity;
+  }
+
+  .node-list__row {
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 520px) {
+  .header-actions {
+    gap: 1px;
+  }
+
+  .notice {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .notice--choice > div:first-child {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .notice__actions {
+    flex-wrap: wrap;
+  }
+
+  .dashboard-controls__actions {
+    flex-wrap: nowrap;
+  }
+
+  .search-field {
+    flex: none;
+  }
+
+  .select-field {
+    min-width: 0;
+  }
+
+  .select-field select {
+    max-width: 108px;
+  }
+
+  .result-count {
+    display: none;
+  }
+
+
+  .node-card--mini .node-card__name {
+    font-size: 12px;
+  }
+
+  .latency-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metadata-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-header__inner {
+    width: min(100% - 18px, 1280px);
+  }
+
+  .dashboard {
+    width: min(100%, 1280px);
+  }
+
+  .brand__mark {
+    width: 30px;
+    height: 30px;
+  }
+
+  .brand__copy strong {
+    max-width: 150px;
+    font-size: 13px;
+  }
+
+  .icon-button {
+    width: 31px;
+    height: 31px;
+  }
+
+  .node-list__head {
+    padding: 6px 8px;
+  }
+
+  .node-list__row {
+    padding: 0 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .app-header--scrolled,
+  .overview-card,
+  .node-card,
+  .node-list__row,
+  .node-list__head,
+  .notice {
+    background: var(--page-soft);
+  }
+}
+
+.glass-panel {
+  border: 1px solid var(--glass-border);
+  background: linear-gradient(145deg, var(--glass-strong), var(--glass));
+  box-shadow: var(--shadow-soft), inset 0 1px rgb(255 255 255 / 18%);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+}
+
+.detail-page {
+  width: min(100%, 1280px);
+  margin-inline: auto;
+  padding: 0 16px 50px;
+}
+
+.detail-back {
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--glass-soft);
+  cursor: pointer;
+}
+
+.detail-back:hover {
+  color: var(--ink);
+  background: var(--glass-hover);
+}
+
+.detail-page {
+  flex: 1;
+}
+
+.detail-loading {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.detail-loading__hero {
+  grid-column: 1 / -1;
+  height: 240px;
+  border-radius: 26px;
+}
+
+.detail-loading__card {
+  height: 150px;
+  border-radius: var(--radius);
+}
+
+.detail-state {
+  max-width: 680px;
+  margin: 10vh auto 0;
+}
+
+.detail-state small {
+  color: var(--faint);
+}
+
+.detail-state__actions {
+  display: flex;
+  gap: 10px;
+}
+
+
+/*
+ * Round 9.95: 详情页顶部对齐 Komari `InstanceDetail` 的导航条——
+ * 返回 / 旗帜 + 名称 / 状态徽章 / 自定义标签 / 收藏与上下节点工具条，
+ * 取代此前 CFSM 自创的 hero 面板。
+ */
+.detail-topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.detail-topbar__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.detail-topbar__flag {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+.detail-topbar__name {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-topbar__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/*
+ * 上游工具条是 `ml-auto flex h-8 items-center gap-1 rounded-md bg-background/50 p-0.5 backdrop-blur-xs`，
+ * 按钮 `size-7 rounded-sm`；返回按钮是 `size-icon-sm`（32px）加同样的 `bg-background/50`。
+ */
+.detail-topbar__tools {
+  display: flex;
+  height: 32px;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 2px;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--background) 50%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.detail-topbar__tools .icon-button {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  box-shadow: none;
+}
+
+.detail-topbar__tools .icon-button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--muted) 12%, transparent);
+}
+
+.detail-topbar > .icon-button {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: none;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--background) 50%, transparent);
+  box-shadow: none;
+}
+
+.detail-topbar > .icon-button:hover {
+  background: var(--background);
+}
+
+.detail-topbar__select {
+  max-width: 136px;
+  height: 28px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--ink);
+  background: transparent;
+  font-size: 11px;
+  outline: none;
+}
+
+@media (min-width: 640px) {
+  .detail-topbar {
+    gap: 16px;
+  }
+
+  .detail-topbar__select {
+    max-width: 192px;
+  }
+}
+
+.detail-overview,
+.detail-information-grid,
+.load-chart,
+.ping-chart {
+  margin-top: 16px;
+}
+
+.detail-list dt {
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* CardX 头部标题是 `font-medium`，16px，不加负字距。 */
+.detail-info-card h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* 上游详情分区 Tab 条：`w-max h-8 bg-background/50 rounded-md`。 */
+.detail-tabs-bar {
+  margin-top: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.detail-tabs-bar::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * 分区 Tab 与两条图表时间范围 Tab 同一套上游类名：
+ * 列表 `h-8 p-[3px] bg-background/50 backdrop-blur-xl rounded-md`，
+ * 触发器 `h-6.5 px-2 text-xs font-medium rounded-sm`，未选中是前景色 60%，
+ * 选中项 `bg-background`。浏览器实测（Komari 1440×900）：列表 32px / 内边距 3px /
+ * 圆角 8px / 模糊 24px，触发器 26px / 左右 8px / 12px 500 / 圆角 6px。
+ */
+.detail-tabs-bar .app-tabs__list,
+.detail-range-tabs .app-tabs__list {
+  width: max-content;
+  height: 32px;
+  gap: 0;
+  padding: 3px;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--background) 50%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.detail-tabs-bar .app-tabs__trigger,
+.detail-range-tabs .app-tabs__trigger {
+  height: 26px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 8px;
+  border-radius: var(--radius-sm);
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+:root[data-theme='dark'] .detail-tabs-bar .app-tabs__trigger,
+:root[data-theme='dark'] .detail-range-tabs .app-tabs__trigger {
+  color: var(--muted);
+}
+
+.detail-tabs-bar .app-tabs__trigger:hover,
+.detail-range-tabs .app-tabs__trigger:hover {
+  color: var(--ink);
+}
+
+.detail-tabs-bar .app-tabs__trigger[data-state='active'],
+.detail-range-tabs .app-tabs__trigger[data-state='active'] {
+  background: var(--background);
+}
+
+/* 分区 Tab 选中是 `text-selection`，时间范围选中是 `text-green-600`。 */
+.detail-tabs-bar .app-tabs__trigger[data-state='active'] {
+  color: var(--selection);
+}
+
+.detail-range-tabs .app-tabs__trigger[data-state='active'] {
+  color: oklch(0.627 0.194 149.214);
+}
+
+.detail-range-tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.detail-range-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* 上游厂商标识：`rounded-full bg-background/50 px-3 py-1 text-xs text-muted-foreground`，图标 14px。 */
+.detail-provider {
+  max-width: 100%;
+}
+
+.detail-provider__chip {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: color-mix(in oklab, var(--background) 50%, transparent);
+  font-size: 12px;
+  line-height: 1.375;
+}
+
+.detail-provider__chip > .app-icon {
+  flex: none;
+}
+
+.detail-provider__chip > span {
+  overflow-wrap: anywhere;
+}
+
+.detail-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/*
+ * 详情卡片表面：与总览卡片同源，但圆角是 `rounded-md`。
+ *
+ * 浏览器实测（Komari localhost，1440×900，亮色）：
+ *   background       --background 的 50%（hover 变不透明）
+ *   border           0px none
+ *   border-radius    8px
+ *   box-shadow       none
+ *   backdrop-filter  none（所有断点，指标卡与信息卡都没有 backdrop-blur）
+ *   内容 padding     12px（CardX 的 `!p-3`）
+ * 指标卡内容区高度为 `min-h-10 md:min-h-18`，加上 12px 上下内边距，
+ * 因此整卡窄屏 64px、≥768px 96px。上游指标卡**没有**进度条，
+ * 说明文字走原生 `title` tooltip，不占可见行。
+ */
+.detail-metric-card,
+.detail-info-card,
+.metric-chart-card,
+.ping-task,
+.ping-chart__canvas {
+  border: none;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--background) 50%, transparent);
+  box-shadow: none;
+  transition: background-color 170ms ease;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.detail-metric-card:hover,
+.detail-info-card:hover,
+.metric-chart-card:hover {
+  background: var(--background);
+}
+
+.detail-metric-card {
+  display: flex;
+  min-height: 64px;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+}
+
+.detail-metric-card__head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.detail-metric-card__label {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-metric-card__head .app-icon {
+  flex: none;
+  color: color-mix(in srgb, var(--muted) 25%, transparent);
+  transition: color 160ms ease;
+}
+
+.detail-metric-card:hover .detail-metric-card__head .app-icon {
+  color: var(--muted);
+}
+
+.detail-metric-card__value {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.detail-metric-card__value > strong {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-metric-card__value > em {
+  flex: none;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.detail-metric-card__value.is-danger > strong {
+  color: var(--red);
+}
+
+.detail-metric-card__value.is-warning > strong {
+  color: var(--amber);
+}
+
+.detail-metric-card__value.is-muted > strong {
+  color: var(--muted);
+}
+
+.detail-metric-card__value.is-ok > strong {
+  color: var(--emerald);
+}
+
+@media (min-width: 640px) {
+  .detail-metric-card__value > strong {
+    font-size: 24px;
+    line-height: 32px;
+  }
+
+  .detail-metric-card__value > em {
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 768px) {
+  .detail-metric-card {
+    min-height: 96px;
+  }
+}
+
+.detail-information-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.detail-info-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 0;
+}
+
+/* CardX 的头部是 `px-3 py-2`、标题 16px/500。 */
+.detail-info-card header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+}
+
+.detail-info-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+
+.detail-fact-grid,
+.detail-storage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex: 1;
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+
+.detail-info-card__body .detail-fact-grid {
+  padding: 0;
+}
+
+/* 上游硬件小格是 `hardwareSmallItems.length <= 2 ? 'grid-cols-2' : 'grid-cols-3'`。 */
+.detail-fact-grid.is-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.detail-fact-grid.is-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.detail-info-card--system .detail-fact-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/*
+ * 上游存储卡的内容区没有 `flex-1`，三格保持自然高度（实测 60px），多出的行高留在卡片底部；
+ * 此前这里跟着系统卡一起 `flex: 1`，三格被拉伸到 62px。
+ */
+.detail-storage-grid {
+  flex: none;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/*
+ * 小格表面取自上游对 `.bg-slate-500/5` 的覆盖规则：
+ * 亮色 rgb(255 255 255 / 15%)、暗色 rgb(255 255 255 / 5%)，
+ * 圆角 `rounded-sm`（6px），内边距 8px，行距 8px。
+ */
+.detail-fact {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 15%);
+}
+
+:root[data-theme='dark'] .detail-fact {
+  background: rgb(255 255 255 / 5%);
+}
+
+.detail-fact--cpu {
+  gap: 8px;
+}
+
+.detail-fact__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.detail-network-card__head > span,
+.detail-fact > span,
+.detail-fact__head > span:first-child {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.detail-network-card > strong,
+.detail-fact > strong {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  overflow-wrap: anywhere;
+}
+
+.detail-fact__os {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.detail-cpu-link {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 8%, transparent);
+  font-size: 11px;
+  /*
+   * 上游 `text-[11px]` 只设字号，行高继承正文的 1.5，即 16.5px，
+   * 链接高 4 + 16.5 + 4 = 24.5px（实测）。此前继承到 20px，整行高出 3.5px。
+   */
+  line-height: 16.5px;
+  text-decoration: none;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.detail-cpu-link:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--muted) 12%, transparent);
+}
+
+.detail-cpu-link__short {
+  display: none;
+}
+
+.detail-cpu-tier {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* `text-xs font-bold`：12px / 16px。 */
+.detail-cpu-tier__letter {
+  flex: none;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.detail-cpu-tier__bar {
+  overflow: hidden;
+  height: 6px;
+  flex: 1;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 10%, transparent);
+}
+
+.detail-cpu-tier__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transition: width 700ms ease;
+}
+
+/* 与链接同理：`text-[11px]` 继承 1.5 行高，分级行因此高 16.5px（实测），此前只有 15px。 */
+.detail-cpu-tier__label {
+  flex: none;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 16.5px;
+}
+
+.detail-cpu-tier__letter.is-tier-S { color: #eab308; }
+.detail-cpu-tier__letter.is-tier-A { color: #3b82f6; }
+.detail-cpu-tier__letter.is-tier-B { color: #22c55e; }
+.detail-cpu-tier__letter.is-tier-C { color: #f97316; }
+.detail-cpu-tier__letter.is-tier-D { color: #f87171; }
+.detail-cpu-tier__letter.is-tier-\? { color: var(--muted); }
+.detail-cpu-tier__bar i.is-tier-S { background: #eab308; }
+.detail-cpu-tier__bar i.is-tier-A { background: #3b82f6; }
+.detail-cpu-tier__bar i.is-tier-B { background: #22c55e; }
+.detail-cpu-tier__bar i.is-tier-C { background: #f97316; }
+.detail-cpu-tier__bar i.is-tier-D { background: #f87171; }
+.detail-cpu-tier__bar i.is-tier-\? { background: #94a3b8; }
+
+/* 上游信息格文本是 `text-xs sm:text-sm`：12px 起，640px 以上 14px。 */
+@media (min-width: 640px) {
+  .detail-info-card--system .detail-fact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+  }
+
+  .detail-fact > span,
+  .detail-fact__head > span:first-child,
+  .detail-fact > strong,
+  .detail-network-card__head > span,
+  .detail-network-card > strong {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  /* 上游总流量格右侧的上下行总量是 `hidden sm:block`。 */
+  .detail-network-card small {
+    display: block;
+  }
+
+  .detail-cpu-link__long {
+    display: inline;
+  }
+
+  .detail-cpu-link__short {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .detail-cpu-link__long {
+    display: none;
+  }
+
+  .detail-cpu-link__short {
+    display: inline;
+  }
+}
+
+.detail-network-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+
+/*
+ * 网络卡的两个小格与其它信息格同源（`.bg-slate-500/5` 覆盖值）。
+ * 总流量格额外有一层配额进度背景，对应上游按使用率分级着色的绝对定位条。
+ */
+.detail-network-card {
+  display: flex;
+  position: relative;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 15%);
+}
+
+:root[data-theme='dark'] .detail-network-card {
+  background: rgb(255 255 255 / 5%);
+}
+
+.detail-network-card__progress {
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: width 300ms ease-out, background-color 300ms ease-out;
+}
+
+.detail-network-card__progress.is-ok {
+  background: rgb(16 185 129 / 20%);
+}
+
+.detail-network-card__progress.is-warning {
+  background: rgb(245 158 11 / 25%);
+}
+
+.detail-network-card__progress.is-danger {
+  background: rgb(239 68 68 / 30%);
+}
+
+.detail-network-card > *:not(.detail-network-card__progress) {
+  position: relative;
+  z-index: 1;
+}
+
+.detail-network-card__head,
+.detail-network-card__head > span,
+.detail-network-card__protocols,
+.detail-network-card__rates {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.detail-network-card__head {
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.detail-network-card__head > span,
+.detail-network-card__protocols,
+.detail-network-card__rates {
+  gap: 4px;
+}
+
+/* 上游速率行是 `flex flex-row flex-wrap items-center gap-1`，两组箭头+数值不换行。 */
+.detail-network-card__rates {
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.detail-network-card__rates > span {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.detail-network-card__head > span {
+  color: var(--muted);
+}
+
+.detail-network-card__protocols .app-badge {
+  height: 20px;
+  padding-inline: 4px;
+  color: var(--emerald);
+  font-size: 10px;
+}
+
+/* 上游这段上下行总量没有 nowrap，窄容器里会自然折行。 */
+.detail-network-card small {
+  display: none;
+  margin-left: auto;
+  color: var(--faint);
+  font-size: 11px;
+  text-align: right;
+}
+
+.detail-network-card > strong {
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.detail-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+  margin: 0;
+}
+
+.detail-list > div {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+
+.detail-list dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: right;
+}
+
+/*
+ * 详情页下半部，移植自 Komari `LoadChart.vue` / `PingChart.vue`（浏览器实测 1440×900）：
+ * 时间范围条在上、内容在下，间距 16px；图表栅格 1 / 2 / 3 列（768 / 1280 断点），间距 16px。
+ */
+.load-chart,
+.ping-chart {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.metric-chart-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+/* CardX size="small"：头部 `px-3 py-2`（48px 高），内容 `p-3 pt-0`，图表区 `h-48`。 */
+.metric-chart-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.metric-chart-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+}
+
+.metric-chart-card__body {
+  padding: 0 12px 12px;
+}
+
+.metric-chart-card__chart {
+  height: 192px;
+}
+
+.metric-chart-header {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.metric-chart-header__lead {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+/*
+ * 色调图标框：`size-8 rounded-md ring-1 ring-inset` + `bg-{tone}-500/10 text-{tone}-500
+ * ring-{tone}-500/20`。色值是 Tailwind v4 的 500 档，与上游页面实测的计算值逐一相同。
+ */
+.metric-chart-header__icon {
+  --tone: oklch(0.554 0.046 257.417);
+  display: flex;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--tone);
+  background: color-mix(in oklab, var(--tone) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--tone) 20%, transparent);
+}
+
+.metric-chart-header__icon.is-rose { --tone: oklch(0.645 0.246 16.439); }
+.metric-chart-header__icon.is-amber { --tone: oklch(0.769 0.188 70.08); }
+.metric-chart-header__icon.is-emerald { --tone: oklch(0.696 0.17 162.48); }
+.metric-chart-header__icon.is-cyan { --tone: oklch(0.715 0.143 215.221); }
+.metric-chart-header__icon.is-sky { --tone: oklch(0.685 0.169 237.323); }
+.metric-chart-header__icon.is-violet { --tone: oklch(0.606 0.25 292.717); }
+.metric-chart-header__icon.is-orange { --tone: oklch(0.705 0.213 47.604); }
+.metric-chart-header__icon.is-slate { --tone: oklch(0.554 0.046 257.417); }
+
+.metric-chart-header__text {
+  min-width: 0;
+}
+
+/* `truncate text-sm font-semibold sm:text-base`：14px / 600，≥640px 为 16px / 24px，无负字距。 */
+.metric-chart-header__title {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-chart-header__subtitle {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 磁盘耗尽预测落进预警阈值时的副标题色，几何不变，只换文字颜色。 */
+.metric-chart-header__subtitle--alert {
+  color: var(--destructive);
+}
+
+/* 右侧最新值：`min-w-0 shrink-0 text-right text-xs text-muted-foreground`。 */
+.metric-chart-header__value {
+  min-width: 0;
+  flex: none;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: right;
+}
+
+.metric-chart-value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.metric-chart-value--tight {
+  gap: 2px;
+}
+
+.metric-chart-value--wide {
+  gap: 8px;
+}
+
+.metric-chart-value__rate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+@media (min-width: 640px) {
+  .metric-chart-header__title {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
+@media (min-width: 768px) {
+  .metric-chart-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .metric-chart-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* 上游 Spinner：内容留在原处，上面盖一层半透明遮罩与 24px / 2px 的旋转圆环。 */
+.chart-spinner {
+  position: relative;
+}
+
+.chart-spinner.is-loading {
+  min-height: 160px;
+}
+
+.chart-spinner__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  background: color-mix(in oklab, var(--background) 60%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.chart-spinner__ring {
+  width: 24px;
+  height: 24px;
+  border: 2px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: chart-spin 1s linear infinite;
+}
+
+@keyframes chart-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 上游错误态是居中的 `text-red-500 py-8`；CFSM 的错误类型更多，附上原因与重试。 */
+.detail-chart-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.detail-chart-error strong {
+  color: var(--red);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.detail-chart-error p,
+.detail-chart-error small {
+  max-width: 560px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.detail-chart-error button,
+.ping-chart__button {
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: color-mix(in oklab, var(--background) 50%, transparent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.detail-chart-error button {
+  margin-top: 6px;
+}
+
+.detail-chart-error button:hover,
+.ping-chart__button:hover {
+  background: var(--background);
+}
+
+/* 工具行：范围条可横向滚动，右侧全选 / 全不选（`h-7 rounded-sm bg-background/50`）。 */
+.ping-chart__toolbar {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.ping-chart__range {
+  min-width: 0;
+  flex: 1;
+}
+
+.ping-chart__actions,
+.ping-chart__toggles {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 选中态：`shadow-[0_0_0_2px] shadow-green-600/10 text-green-600`。 */
+.ping-chart__button.is-active {
+  color: oklch(0.627 0.194 149.214);
+  box-shadow: 0 0 0 2px color-mix(in oklab, oklch(0.627 0.194 149.214) 10%, transparent);
+}
+
+/* 上游 Spinner 的内容区不是 flex：任务卡、平滑峰值行（`py-2`）与大图首尾相接。 */
+.ping-task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+/* 任务卡：`p-2 rounded-md bg-background/50 hover:bg-background hover:shadow-[0_0_0_2px] hover:shadow-primary/10`。 */
+.ping-task {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 150ms ease, box-shadow 150ms ease, opacity 150ms ease;
+}
+
+.ping-task:hover {
+  background: var(--background);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.ping-task:focus-visible {
+  outline: 2px solid var(--selection);
+  outline-offset: 2px;
+}
+
+.ping-task.is-off {
+  opacity: 0.3;
+}
+
+.ping-task__main {
+  min-width: 0;
+  flex: 1;
+}
+
+.ping-task__head {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.ping-task__bar {
+  width: 4px;
+  height: 16px;
+  flex: none;
+  border-radius: 4px;
+}
+
+.ping-task__name {
+  overflow: hidden;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 信息按钮：`variant="ghost" size="icon-xs" text-slate-500`，24×24。 */
+.ping-task__info {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: oklch(0.554 0.046 257.417);
+  background: transparent;
+  cursor: pointer;
+}
+
+.ping-task__info:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+
+.ping-chart__toggles .ping-task__info {
+  margin-left: 0;
+  cursor: help;
+}
+
+.ping-task__stats {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.ping-task__avg {
+  font-weight: 500;
+}
+
+.ping-task__stats .is-dim {
+  opacity: 0.6;
+}
+
+/* 统计气泡：`text-xs gap-x-4 gap-y-1.5 grid grid-cols-4`，数值 `font-medium`。 */
+.ping-task-stats {
+  max-width: min(360px, calc(100vw - 24px));
+  padding: 12px;
+  white-space: normal;
+}
+
+.ping-task-stats__grid {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 6px 16px;
+  font-size: 12px;
+}
+
+.ping-task-stats__grid > span {
+  color: var(--muted);
+}
+
+.ping-task-stats__grid > strong {
+  font-weight: 500;
+}
+
+.ping-task-stats__note {
+  margin: 8px 0 0;
+  color: var(--faint);
+  font-size: 11px;
+}
+
+/* 图表显示说明：与统计气泡同一套外框，内容是三段「开关 → 作用」的定义。 */
+.ping-chart-help {
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 12px;
+  white-space: normal;
+}
+
+.ping-chart-help__title {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ping-chart-help__list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ping-chart-help__list dt {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.ping-chart-help__list dd {
+  margin: 0;
+}
+
+.ping-chart__options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+/* 延迟大图：`h-80 bg-background/50 p-4 rounded-md`，没有 hover 态。 */
+.ping-chart__canvas {
+  height: 320px;
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .detail-resource-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .detail-information-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .detail-resource-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .detail-page {
+    width: min(100%, 1280px);
+  }
+
+  .detail-information-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-resource-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 430px) {
+  .detail-metric-card {
+    padding: 13px;
+  }
+
+  .detail-metric-card > strong {
+    font-size: 20px;
+  }
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  .glass-panel {
+    background: var(--page-soft);
+  }
+}
+
+:root[data-color-vision='friendly'] {
+  --emerald: #008c95;
+  --emerald-soft: rgb(0 140 149 / 14%);
+  --blue: #2577c9;
+  --blue-soft: rgb(37 119 201 / 14%);
+  --amber: #d97900;
+  --amber-soft: rgb(217 121 0 / 15%);
+  --red: #c43f22;
+  --red-soft: rgb(196 63 34 / 14%);
+  --violet: #a24787;
+}
+
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+.server-grid--size-comfortable {
+  gap: 16px;
+}
+
+.server-grid--size-large {
+  gap: 20px;
+}
+
+@media (min-width: 640px) {
+  .server-grid--size-comfortable {
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  }
+
+  .server-grid--size-large {
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  }
+}
+
+/*
+ * 首页公告，对应 Komari `HomeView` 的 `.alert.px-4` 与 shadcn `Alert`
+ * （`grid gap-0.5 px-4 py-3 text-sm` + `border-none bg-background/60 backdrop-blur-xs rounded-md`）。
+ * 数值取自上游运行时实测：内边距 12px 16px、圆角 8px、4px 模糊、14px/20px 文字。
+ * 下方不留外边距，与上游一样由下一个区块自身的 16px 内边距隔开。
+ */
+.theme-announcement {
+  padding-inline: 16px;
+}
+
+.theme-announcement__box {
+  display: grid;
+  position: relative;
+  width: 100%;
+  gap: 2px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: color-mix(in oklab, var(--background) 60%, transparent);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: left;
+}
+
+.theme-announcement__title {
+  font-weight: 500;
+}
+
+.theme-announcement__description {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 20px;
+  text-wrap: balance;
+}
+
+@media (min-width: 768px) {
+  .theme-announcement__description {
+    text-wrap: pretty;
+  }
+}
+
+/*
+ * 公告正文的受限 Markdown（Komari `MarkdownRenderer`）。取值都是上游运行时实际生效的值：
+ * 三个颜色逐字取自上游 `:root` / `.dark` 的 --primary、--muted、--foreground（本主题同名变量
+ * 含义不同，因此用带前缀的局部变量），链接样式取公告描述区覆盖后的结果
+ * （始终带下划线、偏移 3px、悬停转 --foreground）。
+ */
+.markdown-content {
+  --markdown-primary: oklch(0.21 0.006 285.885);
+  --markdown-muted: oklch(0.967 0.001 286.375);
+  --markdown-foreground: oklch(0.11 0.01 285.823);
+  line-height: 1.6;
+}
+
+:root[data-theme='dark'] .markdown-content {
+  --markdown-primary: oklch(0.92 0.004 286.32);
+  --markdown-muted: oklch(0.274 0.006 286.033);
+  --markdown-foreground: oklch(0.985 0 0);
+}
+
+.markdown-content__link {
+  color: var(--markdown-primary);
+  text-decoration-line: underline;
+  text-underline-offset: 3px;
+}
+
+.markdown-content__link:hover {
+  color: var(--markdown-foreground);
+}
+
+.markdown-content__code {
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  color: var(--markdown-foreground);
+  background-color: var(--markdown-muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.85em;
+}
+
+.markdown-content__image {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+  max-height: 200px;
+  border-radius: 0.25rem;
+  vertical-align: middle;
+}
+
+.settings-page {
+  width: min(100% - 36px, 1320px);
+  flex: 1;
+  margin-inline: auto;
+  padding: 24px 0 56px;
+}
+
+/*
+ * 设置页顶栏与首页、详情页共用 `AppHeader`，不再自建一套。
+ * 页内只保留一块介绍区：左侧返回与标题，右侧是配置分层与后端状态。
+ */
+.settings-intro {
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+  gap: 28px;
+  margin-bottom: 18px;
+  padding: 24px 30px;
+  border-radius: 26px;
+}
+
+.settings-intro__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.settings-intro h1 {
+  margin: 2px 0 0;
+  font-size: clamp(26px, 4vw, 40px);
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+
+.settings-intro p {
+  max-width: 680px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.settings-layer-stats {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.settings-layer-stats > div {
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--glass-soft);
+}
+
+.settings-layer-stats dt {
+  color: var(--faint);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-layer-stats dd {
+  overflow: hidden;
+  margin: 5px 0 0;
+  font-size: 12px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-layout {
+  display: grid;
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 18px;
+}
+
+.settings-sections {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-section,
+.settings-save-panel {
+  border-radius: var(--radius);
+}
+
+.settings-section {
+  padding: 24px;
+}
+
+.settings-section > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.settings-section > header > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.settings-section h2,
+.settings-save-panel h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.025em;
+}
+
+.settings-section__index {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--emerald);
+  background: var(--emerald-soft);
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.settings-fields {
+  display: grid;
+  gap: 13px;
+}
+
+.settings-fields--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.settings-fields--switches {
+  margin-top: 13px;
+}
+
+.settings-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.settings-field--wide {
+  margin-top: 13px;
+}
+
+.settings-field > span:first-child {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.settings-field input,
+.settings-field select,
+.settings-field textarea,
+.settings-number {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  outline: 0;
+  color: var(--ink);
+  background: var(--glass-soft);
+  font-size: 12px;
+}
+
+.settings-field input,
+.settings-field select {
+  padding: 0 11px;
+}
+
+.settings-field textarea {
+  min-height: 82px;
+  padding: 10px 11px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.settings-field input:focus,
+.settings-field select:focus,
+.settings-field textarea:focus {
+  border-color: color-mix(in srgb, var(--emerald) 58%, transparent);
+  box-shadow: 0 0 0 3px var(--emerald-soft);
+}
+
+.settings-field input:disabled,
+.settings-field select:disabled,
+.settings-field textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.54;
+}
+
+.settings-field small {
+  min-height: 14px;
+  color: var(--faint);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.settings-field small.is-error {
+  color: var(--red);
+}
+
+.settings-number {
+  display: flex;
+  align-items: center;
+}
+
+.settings-number input {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+}
+
+.settings-number i {
+  padding-right: 12px;
+  color: var(--faint);
+  font-size: 10px;
+  font-style: normal;
+}
+
+.settings-switch {
+  display: flex;
+  min-height: 66px;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--glass-soft);
+  cursor: pointer;
+}
+
+.settings-switch input {
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--emerald);
+}
+
+.settings-switch span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-switch strong {
+  font-size: 11px;
+}
+
+.settings-switch small {
+  color: var(--faint);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+/* 与上游行为不同之处的补充说明，接在该项说明之后。 */
+.settings-note {
+  color: var(--faint);
+  font-size: 9px;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+/* 当下是否生效，比说明文字更要看得见，所以不跟着 .settings-note 一起压淡。 */
+.settings-state {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.settings-save-panel {
+  position: sticky;
+  top: 88px;
+  padding: 21px;
+}
+
+.settings-save-panel > p {
+  margin: 8px 0 18px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.settings-action {
+  display: flex;
+  width: 100%;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  color: var(--ink);
+  background: var(--glass-soft);
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.settings-action:hover:not(:disabled) {
+  background: var(--glass-hover);
+  transform: translateY(-1px);
+}
+
+.settings-action--primary {
+  border-color: color-mix(in srgb, var(--emerald) 43%, transparent);
+  color: var(--emerald);
+  background: var(--emerald-soft);
+}
+
+.settings-action--backend {
+  color: white;
+  border-color: var(--emerald);
+  background: var(--emerald);
+}
+
+.settings-action--quiet {
+  min-height: 34px;
+  color: var(--muted);
+  background: transparent;
+}
+
+.settings-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.settings-auth-note {
+  display: block;
+  margin: 10px 1px !important;
+  color: var(--faint) !important;
+  font-size: 9px !important;
+  line-height: 1.55 !important;
+}
+
+.settings-auth-note a {
+  color: var(--emerald);
+  font-weight: 750;
+}
+
+.settings-save-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 12px 0;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.settings-save-alert.is-error {
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 32%, transparent);
+  background: var(--red-soft);
+}
+
+.settings-save-alert small {
+  opacity: 0.78;
+}
+
+.settings-json-preview {
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.settings-json-preview summary {
+  color: var(--faint);
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.settings-json-preview pre {
+  max-height: 320px;
+  padding: 10px;
+  overflow: auto;
+  border-radius: 9px;
+  color: var(--muted);
+  background: var(--page-soft);
+  font-size: 8px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+@media (max-width: 980px) {
+  .settings-layout,
+  .settings-intro {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-save-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .settings-page {
+    width: min(100% - 22px, 1320px);
+    padding-top: 16px;
+  }
+
+  .settings-intro,
+  .settings-section {
+    padding: 20px;
+  }
+
+  .settings-layer-stats,
+  .settings-fields--two {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-section > header {
+    flex-direction: column;
+    gap: 7px;
+  }
+}
+
+@media (max-width: 480px) {
+  .settings-save-panel,
+  .settings-section,
+  .settings-intro {
+    padding-inline: 15px;
+  }
+}
+
+/*
+ * Round 9.5: Earth 与总览卡片的统一栅格，对齐 Komari NodeGeneralCards 的布局契约。
+ * 球体渲染器在桌面端占右半、总览卡片占左半同一行；移动端卡片上移叠加在球体之上。
+ * tiled 渲染器则改为卡片在上、整幅地图在下。
+ */
+.general-stage {
+  display: grid;
+  position: relative;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 0;
+  padding: 16px;
+}
+
+.general-stage--cards-only {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 16px;
+}
+
+.general-stage--cards-only .general-stage__cards {
+  grid-column: 1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.general-stage--cards-only .overview-card {
+  min-height: 72px;
+  grid-column: span 1;
+}
+
+.general-stage__earth {
+  grid-column: 1 / span 12;
+  min-width: 0;
+}
+
+.general-stage__cards {
+  position: relative;
+  z-index: 9;
+  grid-column: 1 / span 12;
+  min-width: 0;
+}
+
+.general-stage--globe .general-stage__earth {
+  grid-row: 1;
+}
+
+/*
+ * 窄屏行高对齐上游：Komari 的球体版是 `h-42 -mt-42 … grid-rows-2`，
+ * 卡片多于六张时改为 `auto-rows-[5rem]`；两种写法算出来都是 80px 一行，
+ * 因此这里统一用 grid-auto-rows: 5rem，卡片本身不再另设 min-height。
+ */
+.general-stage--globe .general-stage__cards {
+  grid-row: 3;
+  margin-top: -10.5rem;
+  grid-auto-rows: 5rem;
+}
+
+/*
+ * 球体版前六张卡片按**列**排布，逐条对应上游 `cardPositionClasses`：
+ * col-start 1/1/5/5/9/9，row-start 1/2/1/2/1/2。
+ * 也就是说第 1、2 张上下叠在最左列，而不是并排在第一行。
+ * 第七张起上游退回 `col-span-4 row-span-1` 的自动排布，这里同样交给自动流。
+ */
+.general-stage--globe .overview-card:nth-child(1) {
+  grid-column: 1 / span 4;
+  grid-row: 1;
+}
+
+.general-stage--globe .overview-card:nth-child(2) {
+  grid-column: 1 / span 4;
+  grid-row: 2;
+}
+
+.general-stage--globe .overview-card:nth-child(3) {
+  grid-column: 5 / span 4;
+  grid-row: 1;
+}
+
+.general-stage--globe .overview-card:nth-child(4) {
+  grid-column: 5 / span 4;
+  grid-row: 2;
+}
+
+.general-stage--globe .overview-card:nth-child(5) {
+  grid-column: 9 / span 4;
+  grid-row: 1;
+}
+
+.general-stage--globe .overview-card:nth-child(6) {
+  grid-column: 9 / span 4;
+  grid-row: 2;
+}
+
+.general-stage--globe:has(.overview-card:nth-child(7)) .overview-card {
+  grid-column: span 4;
+  grid-row: auto;
+}
+
+/*
+ * 上游 tiled 版外框是 `p-3 sm:p-4 … gap-2 sm:gap-3`，
+ * 高度由内容决定，`min-h-[40rem] sm:min-h-[30rem] md:min-h-[36rem] lg:min-h-[40rem]` 只是下限。
+ */
+.general-stage--tiled {
+  min-height: 40rem;
+  padding: 12px;
+}
+
+/* 上游 tiled 版是 `auto-rows-[4.75rem] sm:auto-rows-[5rem] md:auto-rows-[5.8rem]`。 */
+.general-stage--tiled .general-stage__cards {
+  grid-row: 1;
+  grid-auto-rows: 4.75rem;
+}
+
+/* 上游 tiled 卡片是 `col-span-6 sm:col-span-3`：窄屏两张一行，640px 起四张一行。 */
+.general-stage--tiled .overview-card {
+  grid-column: span 6;
+}
+
+.general-stage.general-stage--tiled .general-stage__earth {
+  grid-row: 2;
+  min-height: 18rem;
+}
+
+@media (min-width: 640px) {
+  .general-stage--tiled {
+    min-height: 30rem;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .general-stage--tiled .general-stage__cards {
+    gap: 12px;
+    grid-auto-rows: 5rem;
+  }
+
+  .general-stage.general-stage--tiled .general-stage__earth {
+    min-height: 20rem;
+  }
+
+  .general-stage--tiled .overview-card {
+    grid-column: span 3;
+  }
+}
+
+@media (min-width: 768px) {
+  .general-stage--cards-only .general-stage__cards {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .general-stage--cards-only .overview-card {
+    min-height: 112px;
+  }
+
+  .general-stage--globe {
+    height: 14.5rem;
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .general-stage--globe .general-stage__earth {
+    grid-column: 7 / span 6;
+    grid-row: 1;
+  }
+
+  .general-stage--globe .general-stage__cards {
+    grid-column: 1 / span 6;
+    grid-row: 1;
+    margin-top: 0;
+    height: 100%;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .general-stage--globe:has(.overview-card:nth-child(7)) {
+    height: auto;
+    min-height: 14.5rem;
+  }
+
+  .general-stage--globe:has(.overview-card:nth-child(7)) .general-stage__cards {
+    grid-auto-rows: 7rem;
+    grid-template-rows: none;
+  }
+
+  .general-stage--tiled {
+    min-height: 36rem;
+  }
+
+  .general-stage.general-stage--tiled .general-stage__earth {
+    min-height: 24rem;
+  }
+
+  .general-stage--tiled .general-stage__cards {
+    grid-auto-rows: 5.8rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .general-stage--tiled {
+    min-height: 40rem;
+  }
+
+  .general-stage.general-stage--tiled .general-stage__earth {
+    min-height: 28rem;
+  }
+}
+
+/* Round 8: truthful advanced tools (Round 9.5 moved Earth to real renderers). */
+.advanced-tools {
+  position: relative;
+  margin-bottom: 14px;
+  padding: 18px;
+  overflow: hidden;
+  border-radius: calc(var(--radius) + 4px);
+}
+
+.advanced-tools__header {
+  display: flex;
+  position: relative;
+  z-index: 2;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.advanced-tools__header h2 {
+  margin: 0;
+  font-size: clamp(18px, 2.4vw, 25px);
+  letter-spacing: -0.035em;
+}
+
+.advanced-tools__header p {
+  max-width: 650px;
+  margin: 5px 0 0;
+  color: var(--faint);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.topology-grid button i,
+.health-list__name i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--emerald);
+  box-shadow: 0 0 0 3px var(--emerald-soft);
+}
+
+.topology-grid button i.is-offline {
+  background: var(--red);
+  box-shadow: 0 0 0 3px var(--red-soft);
+}
+
+.advanced-tools__badge {
+  flex: none;
+  padding: 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--emerald);
+  background: var(--emerald-soft);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.advanced-tools__tabs .app-tabs__list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 5px;
+  overflow: visible;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--glass-soft);
+}
+
+.advanced-tools__tabs .app-tabs__trigger {
+  padding: 9px 11px;
+  border-radius: 10px;
+}
+
+.advanced-tools__tabs .app-tabs__trigger:hover,
+.advanced-tools__tabs .app-tabs__trigger[data-state='active'] {
+  color: var(--ink);
+  background: var(--glass-strong);
+  box-shadow: var(--shadow-soft);
+}
+
+.advanced-tools__tabs .app-tabs__trigger[data-state='active'] span {
+  color: var(--selection);
+}
+
+.advanced-tools__tabs .app-tabs__trigger > span {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.advanced-tools__tabs small {
+  overflow: hidden;
+  width: 100%;
+  color: var(--faint);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-panel {
+  margin-top: 12px;
+}
+
+.tool-empty {
+  margin: 0;
+  padding: 35px 16px;
+  color: var(--faint);
+  font-size: 11px;
+  text-align: center;
+}
+
+.health-summary {
+  display: grid;
+  grid-template-columns: 1.7fr repeat(4, minmax(0, 0.7fr));
+  gap: 7px;
+}
+
+.health-summary article {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass-soft);
+}
+
+.health-summary article span {
+  color: var(--faint);
+  font-size: 9px;
+}
+
+.health-summary article strong {
+  font-size: 21px;
+}
+
+.health-summary article small {
+  color: var(--faint);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.health-summary article.health-tone--healthy strong {
+  color: var(--emerald);
+}
+
+.health-summary article.health-tone--warning strong {
+  color: var(--amber);
+}
+
+.health-summary article.health-tone--critical strong {
+  color: var(--red);
+}
+
+.health-list {
+  display: grid;
+  gap: 5px;
+  margin-top: 9px;
+}
+
+.health-list > button {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.8fr) minmax(210px, 1.4fr) 42px 110px;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--glass-soft) 68%, transparent);
+  text-align: left;
+  cursor: pointer;
+}
+
+.health-list > button:hover {
+  color: var(--ink);
+  background: var(--glass-hover);
+}
+
+.health-list__name {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.health-list__name i.health-tone--warning {
+  background: var(--amber);
+  box-shadow: 0 0 0 3px var(--amber-soft);
+}
+
+.health-list__name i.health-tone--critical {
+  background: var(--red);
+  box-shadow: 0 0 0 3px var(--red-soft);
+}
+
+.health-list__name i.health-tone--unknown {
+  background: var(--faint);
+  box-shadow: 0 0 0 3px var(--line);
+}
+
+.health-list__issues {
+  overflow: hidden;
+  color: var(--faint);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.health-list > button > strong {
+  color: var(--ink);
+  font-size: 16px;
+  text-align: right;
+}
+
+.health-list > button > small {
+  color: var(--faint);
+  font-size: 8px;
+  text-align: right;
+}
+
+.tool-boundary-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--glass-soft) 68%, transparent);
+}
+
+.tool-boundary-note strong {
+  flex: none;
+  font-size: 10px;
+}
+
+.tool-boundary-note span {
+  color: var(--faint);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.value-groups {
+  display: grid;
+  gap: 12px;
+}
+
+.value-groups > section > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 2px 6px;
+}
+
+.value-groups > section > header strong {
+  color: var(--emerald);
+  font-size: 11px;
+}
+
+.value-groups > section > header span {
+  color: var(--faint);
+  font-size: 8px;
+}
+
+.value-groups button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 26px minmax(180px, 1.3fr) minmax(120px, 0.7fr) 64px;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--muted);
+  background: var(--glass-soft);
+  text-align: left;
+  cursor: pointer;
+}
+
+.value-groups button:hover {
+  background: var(--glass-hover);
+}
+
+.value-groups button > b {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--emerald);
+  background: var(--emerald-soft);
+  font-size: 9px;
+}
+
+.value-groups button > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.value-groups button strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value-groups button small {
+  overflow: hidden;
+  color: var(--faint);
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.value-groups button em {
+  color: var(--emerald);
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 800;
+  text-align: right;
+}
+
+.snapshot-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.45fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--glass-soft);
+}
+
+.snapshot-panel__icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--emerald);
+  background: var(--emerald-soft);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.snapshot-panel h3 {
+  margin: 8px 0 5px;
+  font-size: 16px;
+}
+
+.snapshot-panel p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--faint);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.snapshot-password {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.snapshot-password span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.snapshot-password input {
+  width: 100%;
+  height: 35px;
+  padding: 0 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  outline: 0;
+  background: var(--glass-strong);
+}
+
+.snapshot-password small {
+  color: var(--faint);
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.snapshot-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.snapshot-actions button {
+  min-width: 96px;
+  min-height: 35px;
+  padding: 0 12px;
+  border: 1px solid color-mix(in srgb, var(--emerald) 42%, var(--line));
+  border-radius: 9px;
+  color: var(--emerald);
+  background: var(--emerald-soft);
+  font-size: 9px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.snapshot-actions button:hover {
+  color: white;
+  background: var(--emerald);
+}
+
+.snapshot-error {
+  grid-column: 1 / -1;
+  color: var(--red);
+  font-size: 9px;
+}
+
+.topology-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 9px;
+}
+
+.topology-grid > section {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--glass-soft);
+}
+
+.topology-grid > section > header,
+.topology-grid article > div {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.topology-grid header span,
+.topology-grid article > div span {
+  color: var(--faint);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.topology-grid header strong {
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topology-grid article {
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid var(--line);
+}
+
+.topology-grid article > div strong {
+  font-size: 10px;
+}
+
+.topology-grid article > div small {
+  margin-left: auto;
+  color: var(--faint);
+  font-size: 8px;
+}
+
+.topology-grid button {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--glass-strong) 54%, transparent);
+  text-align: left;
+  cursor: pointer;
+}
+
+.topology-grid button:hover {
+  background: var(--glass-hover);
+}
+
+.topology-grid button > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.topology-grid button strong,
+.topology-grid button small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topology-grid button strong {
+  color: var(--ink);
+  font-size: 9px;
+}
+
+.topology-grid button small {
+  color: var(--faint);
+  font-size: 7px;
+}
+
+.advanced-tools__boundary {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--faint);
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+@media (max-width: 800px) {
+  .health-summary {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .health-summary__lead {
+    grid-column: 1 / -1;
+  }
+
+  .health-list > button {
+    grid-template-columns: minmax(120px, 0.7fr) minmax(160px, 1.3fr) 36px;
+  }
+
+  .health-list > button > small {
+    display: none;
+  }
+
+  .snapshot-panel {
+    grid-template-columns: 1fr auto;
+  }
+
+  .snapshot-password {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+@media (max-width: 560px) {
+  .advanced-tools {
+    padding: 14px;
+  }
+
+  .advanced-tools__header,
+  .tool-boundary-note {
+    flex-direction: column;
+  }
+
+  .advanced-tools__tabs .app-tabs__list {
+    display: flex;
+    overflow-x: auto;
+  }
+
+  .advanced-tools__tabs .app-tabs__trigger {
+    min-width: 104px;
+  }
+
+  .health-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .health-list > button {
+    grid-template-columns: minmax(0, 1fr) 38px;
+  }
+
+  .health-list__issues {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    white-space: normal;
+  }
+
+  .value-groups button {
+    grid-template-columns: 25px minmax(0, 1fr) 58px;
+  }
+
+  .value-groups button > span:nth-of-type(2) {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+
+  .snapshot-panel {
+    grid-template-columns: 1fr;
+    padding: 15px;
+  }
+
+  .snapshot-password {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .snapshot-actions {
+    flex-direction: row;
+  }
+
+  .snapshot-actions button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .topology-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/*
+ * ===== 价值与费用明细弹窗（v1.1.7）=====
+ *
+ * 取值是 Komari `AppDialog` / `FinanceDetailsDialog` 在同机浏览器里的运行时计算值
+ * （1440 与 375、浅色与深色，记录见 docs/finance-parity.md）。有意差异只有两处：
+ * - 页签区上下排列。上游 `Tabs` 写的是 `data-horizontal:flex-col`，匹配不到 reka-ui
+ *   输出的 `data-orientation`，运行时页签与内容并排，375 宽度下账单表被挤出可视区；
+ *   这里按源码意图排成一列。
+ * - 没有「按量估算」页签，汇总栏因此是两格。
+ * 下拉框与「恢复今日汇率」是上游 `.bg-background` 的消费者，跟随配色方案的控制色与文字色；
+ * 其余表面（弹窗、表格、输入框）与上游一样不随方案变化。
+ */
+:root {
+  --dialog-surface: oklab(0.965 -0.00247213 -0.00760845 / 95%);
+  --dialog-border: oklab(0.92 0.00112401 -0.00383883 / 70%);
+  --dialog-divider: oklab(0.92 0.00112401 -0.00383883 / 60%);
+  --dialog-row-divider: oklab(0.92 0.00112401 -0.00383883 / 50%);
+  --dialog-row-hover: oklab(0.967 0.000281923 -0.000959437 / 25%);
+  --dialog-muted: oklch(0.967 0.001 286.375);
+  --dialog-thead: oklab(0.967 0.000281923 -0.000959437 / 45%);
+  --dialog-input-border: oklch(0.92 0.004 286.32);
+  --dialog-input-surface: transparent;
+  --dialog-tab-idle: oklab(0.11 0.00272667 -0.00962108 / 60%);
+  --dialog-tab-active-surface: var(--background);
+  --dialog-tab-active-border: transparent;
+  --dialog-accent: oklch(0.21 0.006 285.885);
+  --dialog-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 5%);
+}
+
+:root[data-theme='dark'] {
+  --dialog-surface: oklab(0.21 0.00164225 -0.00577088 / 95%);
+  --dialog-border: oklab(1 0 0 / 7%);
+  --dialog-divider: oklab(1 0 0 / 6%);
+  --dialog-row-divider: oklab(1 0 0 / 5%);
+  --dialog-row-hover: oklab(0.274 0.00165715 -0.00576662 / 25%);
+  --dialog-muted: oklch(0.274 0.006 286.033);
+  --dialog-thead: oklab(0.274 0.00165715 -0.00576662 / 45%);
+  --dialog-input-border: oklch(1 0 0 / 15%);
+  --dialog-input-surface: oklab(1 0 0 / 4.5%);
+  --dialog-tab-idle: var(--muted);
+  --dialog-tab-active-surface: oklab(1 0 0 / 4.5%);
+  --dialog-tab-active-border: oklch(1 0 0 / 15%);
+  --dialog-accent: oklch(0.92 0.004 286.32);
+}
+
+.app-dialog__overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  background: oklab(0 0 0 / 45%);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+.app-dialog {
+  position: fixed;
+  z-index: 101;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  width: calc(100vw - 2rem);
+  max-width: 64rem;
+  max-height: calc(100dvh - 2rem);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--dialog-border);
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: var(--dialog-surface);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 25%);
+  font-size: 16px;
+  line-height: 24px;
+  transform: translate(-50%, -50%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.app-dialog:focus {
+  outline: none;
+}
+
+.app-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--dialog-divider);
+}
+
+.app-dialog__heading {
+  min-width: 0;
+  flex: 1;
+}
+
+.app-dialog__title {
+  margin: 0;
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-dialog__description {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.app-dialog__close {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  background: transparent;
+  cursor: default;
+  transition: color 150ms ease, background-color 150ms ease;
+}
+
+.app-dialog__close:hover {
+  color: var(--ink);
+  background: var(--background);
+}
+
+.app-dialog__body {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.finance-dialog > * + * {
+  margin-top: 16px;
+}
+
+.finance-dialog__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-block: 12px;
+  border-block: 1px solid var(--dialog-divider);
+  text-align: center;
+}
+
+.finance-dialog__metric {
+  min-width: 0;
+  padding-inline: 8px;
+}
+
+.finance-dialog__metric:not(:last-child) {
+  border-right: 1px solid var(--dialog-divider);
+}
+
+.finance-dialog__metric-label {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.finance-dialog__metric-value {
+  margin-top: 4px;
+  overflow: hidden;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 28px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 算不进合计的节点逐条交代，上游没有这一行。 */
+.finance-dialog__metric-note {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 16px;
+  /* 手机上两栏很窄，避免「未计入」的最后一个字单独折行。 */
+  text-wrap: balance;
+}
+
+.finance-dialog__tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.finance-dialog__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.finance-dialog__tab-list {
+  display: inline-flex;
+  min-width: 0;
+  height: 36px;
+  flex: 1 1 0%;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border-radius: var(--radius);
+  color: var(--muted);
+  background: var(--dialog-muted);
+}
+
+.finance-dialog__tab {
+  position: relative;
+  display: inline-flex;
+  height: calc(100% - 1px);
+  flex: 1 1 0%;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--dialog-tab-idle);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: default;
+  transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+}
+
+.finance-dialog__tab:hover {
+  color: var(--ink);
+}
+
+.finance-dialog__tab[data-state='active'] {
+  border-color: var(--dialog-tab-active-border);
+  color: var(--ink);
+  background: var(--dialog-tab-active-surface);
+}
+
+.finance-dialog__tab .app-icon {
+  flex-shrink: 0;
+}
+
+.finance-dialog__exclude {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.finance-dialog__exclude input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--dialog-accent);
+}
+
+.finance-dialog__panel {
+  flex: 1;
+  font-size: 14px;
+  line-height: 20px;
+  outline: none;
+}
+
+.finance-dialog__panel > * + * {
+  margin-top: 8px;
+}
+
+.finance-dialog__panel--rates > * + * {
+  margin-top: 12px;
+}
+
+.finance-dialog h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.finance-dialog__panel-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.finance-dialog__panel-head p,
+.finance-dialog__rates-title p,
+.finance-dialog__rate-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.finance-dialog__select,
+.finance-dialog__outline-button {
+  height: 32px;
+  border: 1px solid var(--dialog-input-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  color: var(--glass-text, var(--ink));
+  background: var(--control-surface, var(--glass-strong));
+  backdrop-filter: blur(14px) saturate(145%);
+  -webkit-backdrop-filter: blur(14px) saturate(145%);
+}
+
+.finance-dialog__select {
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.finance-dialog__outline-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  box-shadow: var(--dialog-shadow-xs);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: default;
+}
+
+/* 没有手动汇率时这个按钮什么也不会改，置灰与汇率输入框的禁用态一致。 */
+.finance-dialog__outline-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.finance-dialog__outline-button .app-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.finance-dialog__table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--dialog-divider);
+  border-radius: var(--radius-md);
+}
+
+.finance-dialog__table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 16px;
+  text-align: left;
+}
+
+.finance-dialog__table thead {
+  color: var(--muted);
+  background: var(--dialog-thead);
+}
+
+.finance-dialog__table th {
+  padding: 8px 12px;
+  font-weight: 500;
+}
+
+.finance-dialog__table td {
+  padding: 10px 12px;
+  white-space: nowrap;
+}
+
+.finance-dialog__table tbody tr:not(:last-child) {
+  border-bottom: 1px solid var(--dialog-row-divider);
+}
+
+.finance-dialog__table tbody tr:hover {
+  background: var(--dialog-row-hover);
+}
+
+.finance-dialog__table .is-end {
+  text-align: right;
+}
+
+.finance-dialog__table .is-strong {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.finance-dialog__table td.finance-dialog__name {
+  max-width: 192px;
+  white-space: normal;
+}
+
+.finance-dialog__name div {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.finance-dialog__table td.finance-dialog__empty {
+  padding: 32px 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.finance-dialog__rates-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.finance-dialog__rates-title {
+  margin-right: auto;
+}
+
+.finance-dialog__rate-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.finance-dialog__rate {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.finance-dialog__rate span {
+  font-weight: 500;
+}
+
+.finance-dialog__rate-input {
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--dialog-input-border);
+  border-radius: var(--radius-md);
+  outline: none;
+  color: var(--ink);
+  background: var(--dialog-input-surface);
+  box-shadow: var(--dialog-shadow-xs);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  line-height: 16px;
+}
+
+.finance-dialog__rate-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (min-width: 640px) {
+  .app-dialog__header {
+    padding-inline: 20px;
+  }
+
+  .app-dialog__body {
+    padding: 20px;
+  }
+
+  .finance-dialog__tab-list {
+    flex: none;
+  }
+
+  .finance-dialog__rate-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .finance-dialog__rate-input {
+    font-size: 14px;
+    line-height: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .finance-dialog__rate-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
