@@ -1106,6 +1106,15 @@ a {
   .overview-card__icon {
     display: none; /* icon 在手機細卡佔太多空間，收埋等 label 有地方顯示 */
   }
+
+  /* 手機卡空間有限，number 縮細 16px→14px，unit 11px→10px。 */
+  .overview-card__number {
+    font-size: 14px;
+  }
+
+  .overview-card__unit {
+    font-size: 10px;
+  }
 }
 
 /*
@@ -1135,6 +1144,9 @@ a {
   min-width: 0;
   align-items: baseline;
   gap: 4px;
+  /* 用戶明確要求：數值同單位要完整顯示。
+   * 允許 unit 跌到下一行，唔好 nowrap 卡死成 ellipsis。 */
+  flex-wrap: wrap;
 }
 
 /*
@@ -1149,13 +1161,18 @@ a {
 }
 
 .overview-card__number {
-  overflow: hidden;
+  overflow: visible;
   font-size: 16px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.025em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* 數值要完整顯示，唔好 ellipsis（用户要求）。
+   * 用 flex-wrap + overflow-wrap 等內容自然換行。 */
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
 /*
@@ -1170,15 +1187,18 @@ a {
  * `.detail-metric-card__value > em` 保持 `flex: none`，两者不要互相套用。
  */
 .overview-card__unit {
-  overflow: hidden;
+  overflow: visible;
   min-width: 0;
   color: var(--muted);
   font-size: 11px;
   font-weight: 500;
   /* 上游 text-[11px] 只设字号、行高按 1.5 解析，实测 16.5px；≥768px 的 text-xs 是 16px。 */
   line-height: 1.5;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* 同 number 一致：完整顯示，必要時換行。 */
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 
 @media (min-width: 768px) {
