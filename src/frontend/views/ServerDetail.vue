@@ -10,12 +10,12 @@
     <template v-else>
     
     <div class="nav-bar">
-      <router-link to="/" class="back-btn">
+      <a href="/" class="back-btn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="15 18 9 12 15 6"></polyline>
         </svg>
         {{ trans.back }}
-      </router-link>
+      </a>
       <div class="time-selector" v-show="historyLoaded" id="time-selector">
         <button 
           v-for="option in timeOptions" 
@@ -426,7 +426,8 @@ if (!serverId) {
 }
 
 if (!serverId) {
-  router.push('/')
+  // 無 serverId → 跳出 SPA 去真正的主頁（glassmorphism）
+  window.location.href = '/'
 }
 
 const apiIndex = ref(0)

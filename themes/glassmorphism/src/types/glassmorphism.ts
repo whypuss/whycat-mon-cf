@@ -105,11 +105,14 @@ export interface GlassServer {
 }
 
 /**
- * 首页视图模式只有卡片与列表两种，与 Komari `appStore.nodeViewMode` 一致。
+ * 首页视图模式：卡片、列表、环图三种。
+ * Komari 上游原本只有卡片与列表（`appStore.nodeViewMode`），
+ * `ring` 是本主题依用户明确需求加入的扩展，提供 CPU/RAM/Disk 三圆环视图，
+ * 与 `card | list` 平起平坐，可由首页控制区切换按钮选择。
  * 卡片的密度（mini / compact / comfortable / large）是独立的主题设置
  * `nodeCardSize`，不折叠进视图模式，否则首页控制区会多出上游没有的按钮。
  */
-export type DashboardViewMode = 'card' | 'list'
+export type DashboardViewMode = 'card' | 'list' | 'ring'
 export type DashboardThemeMode = 'system' | 'light' | 'dark'
 export type DashboardSort = 'order' | 'name' | 'status' | 'cpu' | 'memory' | 'network'
   | 'traffic' | 'upload' | 'download' | 'peak'

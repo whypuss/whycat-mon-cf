@@ -8,6 +8,7 @@ import DashboardControls from '@/components/dashboard/DashboardControls.vue'
 import EarthMap from '@/components/dashboard/EarthMap.vue'
 import MarkdownRenderer from '@/components/dashboard/MarkdownRenderer.vue'
 import OverviewCards from '@/components/dashboard/OverviewCards.vue'
+import ServerRingCard from '@/components/dashboard/ServerRingCard.vue'
 import ServerCard from '@/components/dashboard/ServerCard.vue'
 import ServerList from '@/components/dashboard/ServerList.vue'
 import {
@@ -585,6 +586,32 @@ onUnmounted(() => realtime.stop())
                 @toggle-favorite="preferences.toggleFavorite(server.key)"
               />
             </TransitionGroup>
+            <!-- 环图视图：与卡片网格同款 transition，单独使用 ServerRingCard。 -->
+            <TransitionGroup
+              v-else-if="viewMode === 'ring'"
+              :key="selectedGroup"
+              :appear="cardTransition"
+              :css="cardTransition"
+              name="node-card-switch"
+              tag="div"
+              :class="[
+                'server-grid',
+                'server-grid--ring',
+                `server-grid--size-${theme.runtime.nodeCardSize}`,
+                { 'server-grid--dense': isDenseCollection },
+              ]"
+            >
+              <ServerRingCard
+                v-for="(server, index) in visibleServers"
+                :key="cardTransitionKey(server)"
+                :server="server"
+                :favorite="preferences.isFavorite(server.key)"
+                :price-visible="priceVisible"
+                :style="cardStyle(index)"
+                @open="openServer(server)"
+                @toggle-favorite="preferences.toggleFavorite(server.key)"
+              />
+            </TransitionGroup>
             <!-- 与卡片网格同理：上游列表也在各分组的 TabsContent 里，切换分组时整个重新挂载。 -->
             <ServerList
               v-else
@@ -607,13 +634,8 @@ onUnmounted(() => realtime.stop())
       </main>
 
       <footer v-if="!coldStartCover" class="app-footer">
-        <span>
-          Powered by
-          <a href="https://github.com/huilang-me/CF-Server-Monitor/">
-            CF-Server-Monitor<template v-if="app.config?.version"> v{{ app.config.version }}</template>
-          </a>
-        </span>
-        <span>Glassmorphism Theme · {{ realtimeLabel }}</span>
+        <span>歪貓探針 · v{{ app.config?.version || '' }}</span>
+        <span>歪貓製作</span>
       </footer>
     </div>
   </div>

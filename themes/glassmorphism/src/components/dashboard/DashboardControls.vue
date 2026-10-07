@@ -132,6 +132,16 @@ function clearSearch(): void {
         >
           <AppIcon name="tabler:table" :size="14" />
         </button>
+        <button
+          type="button"
+          :class="{ 'is-active': viewMode === 'ring' }"
+          :aria-pressed="viewMode === 'ring'"
+          aria-label="环图视图"
+          title="环图视图"
+          @click="emit('update:viewMode', 'ring')"
+        >
+          <AppIcon name="tabler:chart-donut-3" :size="14" />
+        </button>
       </div>
 
       <div class="search-field" :class="{ 'is-expanded': searchExpanded }">
