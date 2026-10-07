@@ -51,16 +51,18 @@
  * 注意：这套表面**只属于节点卡片**。总览卡片在上游走的是另一条路径，见 `.overview-card`。
  */
 :root {
-  --card-surface: rgb(241 245 249 / 74%);
-  --card-surface-hover: rgb(248 250 252 / 80%);
+  /* 用户明确要求：推到接近全透，文字可读性次要。
+   * alpha 大幅压低 + blur 拉高，提供极强玻璃通透感。 */
+  --card-surface: rgb(241 245 249 / 5%);
+  --card-surface-hover: rgb(248 250 252 / 12%);
   --card-surface-border: rgb(203 213 225 / 60%);
   --card-surface-shadow: 0 8px 28px rgb(15 23 42 / 18%);
   --card-surface-shadow-hover: 0 8px 28px rgb(15 23 42 / 18%);
 }
 
 :root[data-theme='dark'] {
-  --card-surface: rgb(13 17 26 / 85%);
-  --card-surface-hover: rgb(17 24 39 / 91%);
+  --card-surface: rgb(13 17 26 / 15%);
+  --card-surface-hover: rgb(17 24 39 / 25%);
   --card-surface-border: rgb(255 255 255 / 18%);
   --card-surface-shadow: 0 8px 30px rgb(0 0 0 / 48%);
   --card-surface-shadow-hover: 0 8px 30px rgb(0 0 0 / 48%);
@@ -111,7 +113,8 @@
    * 本主题同位元素是 rgb 83 98 116，浅了一大截且偏蓝。
    */
   --ink: oklch(0.11 0.01 285.823);
-  --muted: oklch(0.34 0.02 285.938);
+  /* muted 改近黑（用户要求），在透明玻璃卡 + 背景图下更清晰。 */
+  --muted: oklch(0.18 0.02 285);
   --faint: #77879a;
   --glass: rgb(246 249 252 / 55%);
   --glass-strong: rgb(249 251 253 / 72%);
@@ -1045,18 +1048,22 @@ a {
   justify-content: space-between;
   gap: 4px;
   padding: 12px;
-  border: none;
+  border: 1px solid var(--card-surface-border);
   border-radius: var(--radius);
-  background: color-mix(in oklab, var(--background) 50%, transparent);
-  box-shadow: none;
-  transition: background-color 170ms ease;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  /* 统一使用与 node-card 一致的玻璃 surface，保持整张页面视觉一致。
+   * 上游原本 color-mix(var(--background) 50%, transparent) 是不透明底色，
+   * 背景图无法透出。现改成 --card-surface（已在 :root 调低 alpha）+ blur 20px。 */
+  background: var(--card-surface);
+  box-shadow: var(--card-surface-shadow);
+  transition: background-color 170ms ease, box-shadow 170ms ease;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .overview-card:hover {
   z-index: 2;
-  background: var(--background);
+  background: var(--card-surface-hover);
+  box-shadow: var(--card-surface-shadow-hover);
 }
 
 /* 上游剩余价值卡带 `cursor-pointer`，可以点开「价值与费用明细」。焦点环沿用全局的 [role='button'] 规则。 */
@@ -1502,8 +1509,8 @@ a {
   box-shadow: var(--node-card-shadow, var(--card-surface-shadow));
   cursor: pointer;
   transition: box-shadow 200ms ease, background-color 200ms ease, transform 200ms ease;
-  backdrop-filter: blur(14px) saturate(145%);
-  -webkit-backdrop-filter: blur(14px) saturate(145%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 /*
@@ -2063,11 +2070,13 @@ a {
   width: var(--ring-size);
   height: var(--ring-size);
   border-radius: 50%;
-  /* 轨道：半透明白底，呼应 --glass-soft。 */
-  background: rgb(255 255 255 / 22%);
+  /* 轨道：极低 alpha 白底 + 强 blur，让背景色渗入（用户要求极致通透）。 */
+  background: rgb(255 255 255 / 10%);
   box-shadow:
-    inset 0 0 0 var(--ring-thickness) rgb(255 255 255 / 10%),
+    inset 0 0 0 var(--ring-thickness) rgb(255 255 255 / 8%),
     0 2px 10px rgb(0 0 0 / 8%);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   isolation: isolate;
 }
 
@@ -2102,9 +2111,9 @@ a {
   justify-content: center;
   gap: 1px;
   border-radius: 50%;
-  background: var(--card-surface, rgb(255 255 255 / 60%));
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  background: var(--card-surface, rgb(255 255 255 / 38%));
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: var(--ink);
 }
 
@@ -2175,7 +2184,7 @@ a {
   height: 5px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgb(255 255 255 / 22%);
+  background: rgb(255 255 255 / 12%);
 }
 
 .ring-progress__fill {
@@ -2326,23 +2335,23 @@ a {
   font-weight: normal;
 }
 
+/* 用户明确要求：解锁标语只保留彩色文字，不要有边框和底色块。 */
 .unlock-badge--yes {
-  background: color-mix(in oklab, #10b981 18%, transparent);
-  border-color: color-mix(in oklab, #10b981 35%, transparent);
+  background: transparent;
+  border-color: transparent;
   color: #10b981;
 }
 
 .unlock-badge--partial {
-  background: color-mix(in oklab, #f59e0b 18%, transparent);
-  border-color: color-mix(in oklab, #f59e0b 35%, transparent);
+  background: transparent;
+  border-color: transparent;
   color: #f59e0b;
 }
 
 .unlock-badge--no {
-  background: color-mix(in oklab, #ef4444 15%, transparent);
-  border-color: color-mix(in oklab, #ef4444 30%, transparent);
+  background: transparent;
+  border-color: transparent;
   color: #ef4444;
-  opacity: 0.7;
 }
 
 .node-tags {
@@ -3477,19 +3486,28 @@ a {
 .metric-chart-card,
 .ping-task,
 .ping-chart__canvas {
-  border: none;
+  border: 1px solid var(--card-surface-border);
   border-radius: var(--radius-md);
-  background: color-mix(in oklab, var(--background) 50%, transparent);
-  box-shadow: none;
-  transition: background-color 170ms ease;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  /* 与 .node-card / .overview-card 走同一玻璃 token，统一全站透明度。 */
+  background: var(--card-surface);
+  box-shadow: var(--card-surface-shadow);
+  transition: background-color 170ms ease, box-shadow 170ms ease;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .detail-metric-card:hover,
 .detail-info-card:hover,
 .metric-chart-card:hover {
-  background: var(--background);
+  background: var(--card-surface-hover);
+  box-shadow: var(--card-surface-shadow-hover);
+}
+
+/* 图表卡片背景需要足够浅，否则 chart canvas 会看不清网格线。
+ * Canvas 用 CanvasRenderer，唔会 resolve CSS variable，必须靠背景衬托。 */
+.metric-chart-card,
+.ping-chart__canvas {
+  background: var(--card-surface-hover);
 }
 
 .detail-metric-card {
@@ -6449,17 +6467,17 @@ a {
 
 .unlock-status-text--yes {
   color: #10b981;
-  background: rgba(16, 185, 129, 0.15);
+  background: transparent;
 }
 
 .unlock-status-text--partial {
   color: #f59e0b;
-  background: rgba(245, 158, 11, 0.15);
+  background: transparent;
 }
 
 .unlock-status-text--no {
   color: #ef4444;
-  background: rgba(239, 68, 68, 0.15);
+  background: transparent;
 }
 
 .node-unlock-bar-item__latency {

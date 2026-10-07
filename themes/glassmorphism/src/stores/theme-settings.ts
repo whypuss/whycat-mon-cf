@@ -229,13 +229,24 @@ export const useThemeSettingsStore = defineStore('theme-settings', () => {
      * 后者在本主题里只有两处消费：激活态的快捷筛选胶囊，和节点数据加载失败时的
      * 「重新加载」（对应上游连接失败提示里的描边「重试」）。文字色只在这几处接管。
      */
-    root.style.setProperty('--node-card-surface', surfaces.card)
-    root.style.setProperty('--node-card-surface-hover', surfaces.cardHover)
+    /*
+     * 用户明确要求：节点卡要真正通透，背景图能透出。
+     * 上游 PRESET_TOKENS 的 card alpha 约 74%-95%，导致背景被大半遮盖；
+     * 这里注入低 alpha 玻璃色 + 强 blur（在 .node-card CSS 已设 blur(32px)），
+     * 保留 preset 色相的精神（浅色用浅色基底，深色用深色基底），
+     * 但 alpha 大幅压低。
+     */
+    root.style.setProperty('--node-card-surface', dark ? 'rgb(13 17 26 / 15%)' : 'rgb(241 245 249 / 5%)')
+    root.style.setProperty('--node-card-surface-hover', dark ? 'rgb(17 24 39 / 25%)' : 'rgb(248 250 252 / 12%)')
     root.style.setProperty('--node-card-border', surfaces.border)
     root.style.setProperty('--node-card-shadow', surfaces.shadow)
     root.style.setProperty('--control-surface', surfaces.control)
     root.style.setProperty('--glass-text', surfaces.text)
-    root.style.setProperty('--glass-muted-text', surfaces.mutedText)
+    /*
+     * 用户明确要求：透明卡片底下 muted（次要）文字改近黑色，
+     * 否则在玻璃卡 + 浅色背景图下无法阅读。深色主题保留浅灰。
+     */
+    root.style.setProperty('--glass-muted-text', dark ? surfaces.mutedText : 'oklch(0.18 0.02 285)')
     /*
      * 顶栏、面板、提示框与弹层保持本主题在 `:root` 里已验证的表面色；由 JS 整表覆盖
      * 全局 `--glass*` 会把预设差异扩散到上游没有对应项的界面上。
