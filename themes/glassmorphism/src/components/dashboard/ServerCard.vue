@@ -309,10 +309,24 @@ interface UnlockItem {
   key: string
   name: string
   category: 'stream' | 'ai'
-  status: 'yes' | 'partial' | 'no'
+  status: 'yes' | 'partial' | 'no' | 'unknown'
   statusText: string
   latency?: number
   region?: string
+}
+
+/** B 方案 — AI 服務雙端點狀態映射。any timeout/err 由 agent 判 unknown。 */
+function aiStatus(input: string | undefined): { status: UnlockItem['status'], statusText: string } {
+  switch (input) {
+    case 'yes':
+      return { status: 'yes', statusText: '已解锁' }
+    case 'partial':
+      return { status: 'partial', statusText: '部分解锁' }
+    case 'unknown':
+      return { status: 'unknown', statusText: '待验证' }
+    default:
+      return { status: 'no', statusText: '未解锁' }
+  }
 }
 
 const unlockItems = computed<UnlockItem[]>(() => {
@@ -351,32 +365,35 @@ const unlockItems = computed<UnlockItem[]>(() => {
     })
   }
   if (u.chatgpt) {
+    const s = aiStatus(u.chatgpt.status)
     items.push({
       key: 'chatgpt',
       name: 'ChatGPT',
       category: 'ai',
-      status: u.chatgpt.status === 'yes' ? 'yes' : 'no',
-      statusText: u.chatgpt.status === 'yes' ? '已解锁' : '未解锁',
+      status: s.status,
+      statusText: s.statusText,
       latency: u.chatgpt.latency
     })
   }
   if (u.claude) {
+    const s = aiStatus(u.claude.status)
     items.push({
       key: 'claude',
       name: 'Claude',
       category: 'ai',
-      status: u.claude.status === 'yes' ? 'yes' : 'no',
-      statusText: u.claude.status === 'yes' ? '已解锁' : '未解锁',
+      status: s.status,
+      statusText: s.statusText,
       latency: u.claude.latency
     })
   }
   if (u.gemini) {
+    const s = aiStatus(u.gemini.status)
     items.push({
       key: 'gemini',
       name: 'Gemini',
       category: 'ai',
-      status: u.gemini.status === 'yes' ? 'yes' : 'no',
-      statusText: u.gemini.status === 'yes' ? '已解锁' : '未解锁',
+      status: s.status,
+      statusText: s.statusText,
       latency: u.gemini.latency
     })
   }

@@ -1086,8 +1086,26 @@ a {
   font-weight: 500;
   line-height: 16px;
   letter-spacing: 0.05em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* 用户明确要求：文字要完整顯示，唔好用 ellipsis cut。
+   * 手機細卡空間有限，wrap 多行好過殘缺。 */
+  text-overflow: clip;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+/* 手機（<768px）卡片 label 縮細，留多空間俾文字完整顯示 */
+@media (max-width: 767px) {
+  .overview-card__label {
+    font-size: 11px;
+    line-height: 14px;
+    letter-spacing: 0.02em;
+  }
+
+  .overview-card__icon {
+    display: none; /* icon 在手機細卡佔太多空間，收埋等 label 有地方顯示 */
+  }
 }
 
 /*
@@ -2352,6 +2370,14 @@ a {
   background: transparent;
   border-color: transparent;
   color: #ef4444;
+}
+
+/* B 方案新增：待验证（timeout / cloudflare challenge 擋 probe）。 */
+.unlock-badge--unknown {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  opacity: 0.78;
 }
 
 .node-tags {
@@ -6480,6 +6506,12 @@ a {
   background: transparent;
 }
 
+.unlock-status-text--unknown {
+  color: var(--muted);
+  background: transparent;
+  opacity: 0.78;
+}
+
 .node-unlock-bar-item__latency {
   font-size: 10px;
   color: var(--muted);
@@ -6518,4 +6550,11 @@ a {
   width: 25%;
   background: linear-gradient(90deg, #ef4444, #f87171);
   box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+/* B 方案新增：待验证 — 用 50% 灰调，同 muted 文字一致。 */
+.node-unlock-bar-item__fill--unknown {
+  width: 50%;
+  background: linear-gradient(90deg, var(--muted), color-mix(in oklab, var(--muted) 60%, transparent));
+  box-shadow: 0 0 4px rgb(0 0 0 / 12%);
 }

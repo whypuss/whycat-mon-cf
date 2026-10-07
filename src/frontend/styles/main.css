@@ -39,8 +39,10 @@
     --text-secondary: #8999af;
     --text-muted: rgba(211, 218, 227, 0.8);
 
-    /* Accent Colors */
-    --accent-green: #00d4aa;
+    /* Accent Colors
+     * 用戶明確要求：控制台全部頁面改藍色風格。
+     * --accent-green 改藍色（保留 token 名免改幾十處 call site）。 */
+    --accent-green: #0e7cd6;
     --accent-blue: #4da6ff;
     --accent-purple: #b392f0;
     --accent-pink: #f778ba;
@@ -466,7 +468,7 @@ body::before {
     font-size: 16px;
     font-weight: 700;
     color: var(--accent-green);
-    text-shadow: 0 0 10px rgba(0, 212, 170, 0.3);
+    text-shadow: 0 0 10px rgba(14, 124, 214, 0.3);
 }
 
 /* --------------------------------------------------------------------------
@@ -511,7 +513,7 @@ body::before {
 }
 
 .btn-primary:hover {
-    background: #00bf99;
+    background: #0b64ad;
 }
 
 .btn-icon {
@@ -2012,7 +2014,7 @@ body::before {
     font-size: 16px;
     font-weight: 700;
     color: var(--accent-green);
-    text-shadow: 0 0 10px rgba(0, 212, 170, 0.3);
+    text-shadow: 0 0 10px rgba(14, 124, 214, 0.3);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2803,7 +2805,7 @@ body::before {
 .checkbox-item .checkbox-badge {
     padding: 2px 6px;
     border-radius: 3px;
-    background: rgba(0, 212, 170, 0.1);
+    background: rgba(14, 124, 214, 0.1);
     color: var(--accent-green);
     font-weight: 600;
 }
@@ -2879,7 +2881,7 @@ body::before {
 
 .wss-hour-option input:checked + span {
     border-color: var(--accent-green);
-    background: rgba(0, 212, 170, 0.12);
+    background: rgba(14, 124, 214, 0.12);
     color: var(--accent-green);
     font-weight: 600;
 }
@@ -3037,7 +3039,7 @@ body::before {
     display: flex;
     align-items: center;
     gap: 8px;
-    text-shadow: 0 0 10px rgba(0, 212, 170, 0.3);
+    text-shadow: 0 0 10px rgba(14, 124, 214, 0.3);
 }
 
 .host-name .prompt {
@@ -3061,9 +3063,9 @@ body::before {
 }
 
 .status-badge.online {
-    background: rgba(0, 212, 170, 0.1);
+    background: rgba(14, 124, 214, 0.1);
     color: var(--accent-green);
-    border-color: rgba(0, 212, 170, 0.3);
+    border-color: rgba(14, 124, 214, 0.3);
 }
 
 .status-badge.offline {
@@ -3244,7 +3246,7 @@ body::before {
     font-size: 14px;
     font-weight: 700;
     color: var(--accent-green);
-    text-shadow: 0 0 8px rgba(0, 212, 170, 0.3);
+    text-shadow: 0 0 8px rgba(14, 124, 214, 0.3);
 }
 
 .chart-subtitle {
@@ -3360,7 +3362,7 @@ body::before {
 
 .cmd-input-wrapper.copied {
     border-color: var(--accent-green);
-    box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.15);
+    box-shadow: 0 0 0 2px rgba(14, 124, 214, 0.15);
 }
 
 .cmd-input-wrapper.copied .cmd-prompt {
@@ -3396,7 +3398,7 @@ body::before {
 
 .cmd-output-wrapper.copied {
     border-color: var(--accent-green);
-    box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.15);
+    box-shadow: 0 0 0 2px rgba(14, 124, 214, 0.15);
 }
 
 .cmd-output-wrapper.copied .cmd-prompt,
@@ -3449,9 +3451,9 @@ body::before {
 }
 
 .config-badge.is-enabled {
-    background: rgba(0, 212, 170, 0.12);
+    background: rgba(14, 124, 214, 0.12);
     color: var(--accent-green);
-    border: 1px solid rgba(0, 212, 170, 0.2);
+    border: 1px solid rgba(14, 124, 214, 0.2);
 }
 
 .config-badge.is-disabled {
@@ -3716,7 +3718,7 @@ body.server-row-drag-active * {
 
 .site-item:hover {
     border-color: var(--accent-cyan);
-    background: rgba(0, 212, 170, 0.05);
+    background: rgba(14, 124, 214, 0.05);
 }
 
 .site-index {
@@ -3842,7 +3844,7 @@ body.server-row-drag-active * {
 }
 
 .login-btn:hover {
-    background: #00bf99;
+    background: #0b64ad;
 }
 
 .login-divider {

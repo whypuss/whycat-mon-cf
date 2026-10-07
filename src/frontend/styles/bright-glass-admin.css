@@ -22,8 +22,11 @@
   --shadow-glass: 0 12px 36px rgba(30, 55, 82, 0.10);
   --shadow-card: 0 4px 16px rgba(30, 55, 82, 0.06);
   
-  --emerald: #0f9f78;
-  --emerald-soft: rgba(15, 159, 120, 0.12);
+  /* 用戶明確要求：控制台所有頁面（包括登入）改藍色風格。
+   * 保留 --emerald / --emerald-soft 名以免改動全部 14 個 call site；
+   * 一個 token redefine 全站切色，這個係 token 驅動設計嘅本意。 */
+  --emerald: #0e7cd6;
+  --emerald-soft: rgba(14, 124, 214, 0.12);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -32,9 +35,9 @@
 /* 全域明亮珍珠底色與環境光斑 */
 body {
   background-color: var(--page-bg) !important;
-  background-image: 
-    radial-gradient(circle at 15% 15%, rgba(15, 159, 120, 0.12), transparent 45%),
-    radial-gradient(circle at 85% 85%, rgba(45, 125, 210, 0.14), transparent 45%),
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(14, 124, 214, 0.16), transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(66, 165, 245, 0.14), transparent 45%),
     radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.4), transparent 60%),
     url('/themes/glassmorphism/assets/default-background-v2-CXlUb6nB.webp') !important;
   background-size: cover !important;
@@ -138,12 +141,12 @@ body {
   background: var(--emerald) !important;
   border-color: rgba(255, 255, 255, 0.4) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 14px rgba(15, 159, 120, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(14, 124, 214, 0.35) !important;
 }
 
 .btn-primary:hover:not(:disabled), .btn-green:hover:not(:disabled) {
-  background: #0d8b68 !important;
-  box-shadow: 0 6px 18px rgba(15, 159, 120, 0.45) !important;
+  background: #0b64ad !important;
+  box-shadow: 0 6px 18px rgba(14, 124, 214, 0.45) !important;
   color: #ffffff !important;
 }
 
@@ -175,7 +178,7 @@ body {
   background: #ffffff !important;
   border-color: var(--emerald) !important;
   outline: none !important;
-  box-shadow: 0 0 0 3px rgba(15, 159, 120, 0.18) !important;
+  box-shadow: 0 0 0 3px rgba(14, 124, 214, 0.18) !important;
 }
 
 /* 玻璃表格 */
@@ -262,6 +265,128 @@ body {
 }
 
 /* ==========================================================================
+   Modal 內容統一玻璃風格（修復 CopyCommandModal 米色 config-list 突兀問題）
+   ========================================================================== */
+.config-list {
+  background: var(--glass-border-subtle) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+  overflow: hidden !important;
+}
+
+.config-row {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  color: var(--ink) !important;
+}
+
+.config-label {
+  color: var(--muted) !important;
+}
+
+.config-value {
+  color: var(--ink) !important;
+}
+
+.config-badge {
+  padding: 2px 8px !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+.config-badge.is-enabled {
+  background: rgba(14, 124, 214, 0.15) !important;
+  color: var(--emerald) !important;
+}
+
+.config-badge.is-disabled {
+  background: rgba(100, 116, 139, 0.12) !important;
+  color: var(--muted) !important;
+}
+
+/* cmd-output 命令列區塊 — 換成玻璃底配 glass border */
+.cmd-output-wrapper {
+  display: flex !important;
+  background: rgba(255, 255, 255, 0.65) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+.cmd-output {
+  color: var(--ink) !important;
+}
+
+.cmd-prompt {
+  color: var(--emerald) !important;
+  font-weight: 700 !important;
+}
+
+.cmd-output-wrapper.copied {
+  border-color: var(--emerald) !important;
+  box-shadow: 0 0 0 3px rgba(14, 124, 214, 0.18) !important;
+}
+
+/* Form 元素喺 modal 入面要一致 */
+.modal-dialog .form-label {
+  color: var(--muted) !important;
+  font-weight: 600 !important;
+}
+
+/* ==========================================================================
+   Modal footer — 手機版 4 個按鈕 wrap，唔再 cut
+   ========================================================================== */
+.modal-footer.flex-justify-between {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+.modal-footer.flex-justify-between > .flex {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+/* 取消按鈕要喺最右，但如果空間唔夠就跟住前面 wrap */
+.modal-footer.flex-justify-between > .btn {
+  margin-left: auto !important;
+  flex-shrink: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .modal-dialog {
+    padding: 16px !important;
+    width: 100% !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+
+  .modal-footer.flex-justify-between {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .modal-footer.flex-justify-between > .flex {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+  }
+
+  .modal-footer.flex-justify-between > .flex .btn,
+  .modal-footer.flex-justify-between > .btn {
+    width: 100% !important;
+    margin-left: 0 !important;
+    justify-content: center !important;
+  }
+}
+
+/* ==========================================================================
    黑暗模式玻璃風格 (Dark Glassmorphism)
    當後台切換至 dark 模式時，使用深藍底 + 深玻璃毛玻璃
    ========================================================================== */
@@ -276,7 +401,7 @@ body.dark {
   --text-secondary: #94a3b8 !important;
   --text-muted: #64748b !important;
   --accent-cyan: #38bdf8 !important;
-  --accent-green: #10b981 !important;
+  --accent-green: #0e7cd6 !important;
   --accent-yellow: #fbbf24 !important;
   --accent-red: #f87171 !important;
 
@@ -300,8 +425,8 @@ body.dark {
   
   background-color: #0a0e17 !important;
   background-image:
-    radial-gradient(ellipse at 20% 0%, rgba(56, 189, 248, 0.05), transparent 40%),
-    radial-gradient(ellipse at 80% 100%, rgba(16, 185, 129, 0.04), transparent 40%),
+    radial-gradient(ellipse at 20% 0%, rgba(56, 189, 248, 0.08), transparent 40%),
+    radial-gradient(ellipse at 80% 100%, rgba(14, 124, 214, 0.08), transparent 40%),
     linear-gradient(180deg, #0a0e17 0%, #0c1120 100%) !important;
   color: var(--ink) !important;
 }
@@ -400,7 +525,7 @@ body.dark .modal-footer {
   justify-content: center;
   background: linear-gradient(135deg, var(--page-bg) 0%, var(--page-soft) 100%) !important;
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(15, 159, 120, 0.18), transparent 45%),
+    radial-gradient(circle at 20% 20%, rgba(14, 124, 214, 0.18), transparent 45%),
     radial-gradient(circle at 80% 80%, rgba(45, 125, 210, 0.18), transparent 45%),
     url('/themes/glassmorphism/assets/default-background-v2-CXlUb6nB.webp') !important;
   background-size: cover !important;
@@ -430,7 +555,7 @@ body.dark .modal-footer {
 
 .login-icon {
   font-size: 36px !important;
-  filter: drop-shadow(0 4px 12px rgba(15, 159, 120, 0.35));
+  filter: drop-shadow(0 4px 12px rgba(14, 124, 214, 0.35));
 }
 
 .login-title {
@@ -477,7 +602,7 @@ body.dark .modal-footer {
 .login-input:focus {
   background: #ffffff !important;
   border-color: var(--emerald) !important;
-  box-shadow: 0 0 0 3px rgba(15, 159, 120, 0.18) !important;
+  box-shadow: 0 0 0 3px rgba(14, 124, 214, 0.18) !important;
 }
 
 .password-input-wrapper {
@@ -518,16 +643,16 @@ body.dark .modal-footer {
   font-size: 14px !important;
   font-weight: 700 !important;
   letter-spacing: 0.3px;
-  box-shadow: 0 4px 14px rgba(15, 159, 120, 0.35) !important;
+  box-shadow: 0 4px 14px rgba(14, 124, 214, 0.35) !important;
   cursor: pointer !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
   font-family: inherit !important;
 }
 
 .login-btn:hover:not(:disabled) {
-  background: #0d8b68 !important;
+  background: #0b64ad !important;
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(15, 159, 120, 0.45) !important;
+  box-shadow: 0 6px 18px rgba(14, 124, 214, 0.45) !important;
 }
 
 .login-btn:disabled {
@@ -655,7 +780,7 @@ body.dark #login-overlay .footer {
 #loading {
   background: linear-gradient(135deg, var(--page-bg) 0%, var(--page-soft) 100%) !important;
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(15, 159, 120, 0.15), transparent 45%),
+    radial-gradient(circle at 20% 20%, rgba(14, 124, 214, 0.15), transparent 45%),
     radial-gradient(circle at 80% 80%, rgba(45, 125, 210, 0.15), transparent 45%) !important;
 }
 
@@ -665,7 +790,7 @@ body.dark #login-overlay .footer {
   width: 48px !important;
   height: 48px !important;
   border-width: 3px !important;
-  box-shadow: 0 0 24px rgba(15, 159, 120, 0.35) !important;
+  box-shadow: 0 0 24px rgba(14, 124, 214, 0.35) !important;
 }
 
 #loading .loading-text {
