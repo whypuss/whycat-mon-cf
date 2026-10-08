@@ -576,9 +576,35 @@ export function sanitizeAdminSettings(fullSettings = {}) {
 
 async function handleGetSettingsAction({ env, sys, loadFullSettings }) {
   const fullSettings = loadFullSettings ? await loadFullSettings() : sys;
+  /*
+   * VULN-010 fix: get_settings 唔再 return api_secret。
+   * 任何 admin session（包括被盜用嘅 JWT、被 hijack 嘅 browser tab）都唔應該
+   * 喺 page load 時自動讀到 fleet-wide shared agent secret。
+   * Install command 需要 secret 嘅場景改用專門嘅 get_install_secret action，
+   * 由用户喺 admin UI 撳「複製新裝命令」按鈕時才 fetch，並 log audit。
+   */
   return createSuccessResponse({
     success: true,
-    settings: sanitizeAdminSettings(fullSettings),
+    settings: sanitizeAdminSettings(fullSettings)
+  });
+}
+
+/*
+ * VULN-010 fix: 專用 install secret endpoint。
+ * 只响用户主動請求生成 install command 時返回 secret，並記錄 audit log。
+ * 保留 env.API_SECRET 嘅使用（同 agent install 流程相容），
+ * 唔改動 agent install / upgrade 嘅任何 wire format。
+ */
+async function handleGetInstallSecretAction({ env, request }) {
+  const ip = request?.headers?.get('cf-connecting-ip') || request?.headers?.get('x-forwarded-for') || 'unknown';
+  const ua = request?.headers?.get('user-agent') || '';
+  console.log('[audit] install_secret_issued', JSON.stringify({
+    ts: new Date().toISOString(),
+    ip,
+    ua: ua.substring(0, 200),
+  }));
+  return createSuccessResponse({
+    success: true,
     api_secret: env.API_SECRET
   });
 }
@@ -763,6 +789,7 @@ async function handleSendTestNotificationAction({ data }) {
 
 const AUTHENTICATED_ADMIN_ACTION_HANDLERS = {
   get_settings: handleGetSettingsAction,
+  get_install_secret: handleGetInstallSecretAction,
   start_theme_preview: handleStartThemePreviewAction,
   save_theme_options: handleSaveThemeOptionsAction,
   list: handleListAction,

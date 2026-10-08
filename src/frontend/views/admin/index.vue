@@ -22,7 +22,7 @@
     />
 
     <div v-else class="container admin-container" id="admin-content">
-      <TerminalHeader :title="trans.adminPanel" />
+      <TerminalHeader title="歪貓探針" />
       <div v-if="adminSiteLoading" class="admin-loading-overlay">
         <div class="loading-content">
           <div class="loading-spinner"></div>
@@ -282,9 +282,12 @@
         :tx-correction="txCorrection"
         :auto-update="autoUpdate"
         :install-command="getCustomInstallCommand()"
+        :upgrade-command="getCustomUpgradeCommand()"
         :copied-cmd="copiedCmd"
+        :copied-upgrade-cmd="copiedUpgradeCmd"
         @close="closeCopyModal"
         @copy-cmd="copyCustomCmd"
+        @copy-upgrade-cmd="copyCustomUpgradeCmd"
         @update:target-os="targetOs = $event"
         @update:install-mode="installMode = $event"
         @update:install-gh-proxy="installGhProxy = $event"
@@ -1147,6 +1150,7 @@ const rxCorrection = ref('')
 const txCorrection = ref('')
 const autoUpdate = ref(false)
 const copiedCmd = ref(false)
+const copiedUpgradeCmd = ref(false)
 
 const isWssReportEnabled = computed(() => settings.value.wss_report_enabled === true)
 const getEffectiveConnectionMode = (value) => {
@@ -1500,10 +1504,28 @@ const loadSettings = async () => {
       }
       applyMikusThemeOptions(settingsData.theme_options)
       changeAdminPassword.value = !settings.value.password_configured || !String(settings.value.username || '').trim()
-      apiSecret.value = data.api_secret || ''
+      /*
+       * VULN-010 fix: get_settings 唔再 return api_secret。
+       * 呢度唔再 sync apiSecret.value；改由 fetchInstallSecret() 喺 CopyCommandModal 開嘅時候 fetch。
+       */
     }
   } catch (e) {
     console.error('[ERROR] Load settings failed:', e)
+  }
+}
+
+/*
+ * VULN-010 fix: 主動 fetch install secret，得喺需要生成 install command 嘅時候 call。
+ * Backend 會 log audit（ip + ua）。
+ */
+const fetchInstallSecret = async () => {
+  try {
+    const result = await adminApiForSite({ action: 'get_install_secret' })
+    if (result.success && result.api_secret) {
+      apiSecret.value = result.api_secret
+    }
+  } catch (e) {
+    console.error('[ERROR] Fetch install secret failed:', e)
   }
 }
 
@@ -1807,7 +1829,7 @@ const addServer = async () => {
 
 const getInstallCommand = (serverId) => {
   const HOST = selectedApiBase.value
-  return `curl -sL ${HOST}/install.sh | bash -s install -id=${serverId} -secret='${apiSecret.value}' -url=${HOST}/update`
+  return `curl -fsSL ${HOST}/download/install-cf-probe.sh | bash -s -- -id=${serverId} -secret='${apiSecret.value}' -url=${HOST}/update`
 }
 
 const resolveServerPingNode = (server, field) => {
@@ -1886,6 +1908,13 @@ const copyCmd = (serverId) => {
   autoUpdate.value = server?.auto_update === '1' || server?.auto_update === 1 || server?.auto_update === true
   copiedCmd.value = false
   showCopyModal.value = true
+  /*
+   * VULN-010 fix: install secret 唔再隨 get_settings 一齊 load。
+   * 順應 backend：get_settings 已唔 return api_secret；
+   * 需要 secret 生成 install command 嘅時候，standalone fetch get_install_secret。
+   * Modal 開嘅時候先 fetch，避免 secret 喺 page lifecycle 內常駐 memory。
+   */
+  fetchInstallSecret()
 }
 
 const hasCorrectionValue = (value) => value !== null && value !== undefined && value !== ''
@@ -2026,11 +2055,16 @@ const getCustomInstallCommand = () => {
   if (networkInterface.value) params.push(`-interface=${networkInterface.value}`)
   if (hasCorrectionValue(rxCorrection.value)) params.push(`-rx_correction=${rxCorrection.value}`)
   if (hasCorrectionValue(txCorrection.value)) params.push(`-tx_correction=${txCorrection.value}`)
-  const ghUrl = buildGhRawUrl(proxy, '/huilang-me/cfsm-agent/main/install.sh')
-  const installCommand = `curl -fsSL ${quotePosixShellArg(ghUrl)} | sh -s -- ${params.join(' ')}`
+  const hostScriptUrl = `${HOST}/download/install-cf-probe.sh`
+  const installCommand = `curl -fsSL ${hostScriptUrl} | bash -s -- ${params.join(' ')}`
   if (!isDedicatedUserInstall) return installCommand
 
   return buildInstallAsCfsmCommand(installCommand, trans.value.nonRootInstallRunStep)
+}
+
+const getCustomUpgradeCommand = () => {
+  const HOST = selectedApiBase.value
+  return `curl -fsSL ${HOST}/download/upgrade-cf-probe.sh | bash`
 }
 
 const copyCustomCmd = async () => {
@@ -2044,6 +2078,20 @@ const copyCustomCmd = async () => {
   copiedCmd.value = true
   setTimeout(() => {
     copiedCmd.value = false
+  }, 1500)
+}
+
+const copyCustomUpgradeCmd = async () => {
+  const cmd = getCustomUpgradeCommand()
+  const copied = await copyTextToClipboard(cmd)
+  if (!copied) {
+    alertMessage.value = trans.value.httpsRequired
+    return
+  }
+
+  copiedUpgradeCmd.value = true
+  setTimeout(() => {
+    copiedUpgradeCmd.value = false
   }, 1500)
 }
 
