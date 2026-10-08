@@ -1,6 +1,7 @@
 import { buildAuthCookie, buildClearAuthCookie, checkAuth, simpleAuthResponse, validateCredentials, generateToken } from '../middleware/auth.js';
 import { getLatestMetricsForAllServers } from '../database/schema.js';
 import { getAllServers, clearServersListCache } from '../utils/cache.js';
+import { checkLoginAllowed, recordLoginFailure, clearLoginFailures, delay } from '../utils/loginRateLimit.js';
 import { clearAppearanceSettingsCache, isValidThemeOptions, isWssReportConfigured, isWssReportEnabled, normalizeBooleanSetting, normalizeDefaultLanguage, normalizeDisplayMode, normalizeExpireNotificationTime, normalizeExpireReminder, normalizeFrontendWsTimeoutMinutes, normalizeLongHistoryPoints, normalizeNotificationTemplate, normalizeNotificationTimezone, normalizeNotificationWebhookBody, normalizeNotificationWebhookFormat, normalizeNotificationWebhookHeaders, normalizeNotificationWebhookMethod, normalizePreferredTheme, normalizeResourceAlertRules, normalizeTgNotify, normalizeWssReportHours, saveSiteOptions, saveThemeOptions, SITE_FIELDS, APPEARANCE_FIELDS } from '../utils/settings.js';
 import { mergeMetricsIntoServer } from '../utils/metrics.js';
 import { normalizePctOrNull } from '../utils/traffic.js';
@@ -468,6 +469,22 @@ async function handleLoginAction({ request, env, sys, data }) {
     return createBadRequestResponse('missingCredentials');
   }
 
+  /*
+   * VULN-002 fix: server-side per-(IP,username) rate limit on login,
+   * enforced BEFORE Turnstile + BEFORE password verification.
+   * 避免 attacker 不斷 probe；亦唔會 lockout 影響其他人（per-pair scope）。
+   */
+  const rateCheck = await checkLoginAllowed(request, env, username);
+  if (!rateCheck.allowed) {
+    return createErrorResponse(new AppError('tooManyAttempts', 429, {
+      retryAfter: rateCheck.retryAfterSec,
+      reason: rateCheck.reason,
+    }));
+  }
+  if (rateCheck.delaySec) {
+    await delay(rateCheck.delaySec * 1000);
+  }
+
   const turnstileEnabled = sys && (sys.turnstile_enabled === 'true' || sys.turnstile_enabled === true);
   const turnstileLoginEnabled = sys && (sys.turnstile_login_enabled === 'true' || sys.turnstile_login_enabled === true);
   const turnstileSecretKey = sys && sys.turnstile_secret_key || '';
@@ -477,6 +494,7 @@ async function handleLoginAction({ request, env, sys, data }) {
     const isTurnstileVerified = await verifyTurnstileToken(turnstileToken, turnstileSecretKey);
 
     if (!isTurnstileVerified) {
+      await recordLoginFailure(request, env, username);
       return createErrorResponse(new AppError('verificationFailed', 403));
     }
   }
@@ -491,6 +509,7 @@ async function handleLoginAction({ request, env, sys, data }) {
   const credentialResult = await validateCredentials(mockRequest, env, sys);
 
   if (!credentialResult.valid) {
+    await recordLoginFailure(request, env, username);
     return createUnauthorizedResponse('invalidCredentials');
   }
 
@@ -505,6 +524,9 @@ async function handleLoginAction({ request, env, sys, data }) {
       console.error('Password hash upgrade failed:', e);
     }
   }
+
+  // 成功 → 清 counter，下次 login 唔會被之前嘅失敗影響
+  await clearLoginFailures(request, env, username);
 
   try {
     const token = await generateToken(env, sys);

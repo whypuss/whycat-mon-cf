@@ -50,8 +50,23 @@ export async function initDatabase(db) {
   if (dbInitialized) return;
 
   debug('初始化数据库');
-  
+
   try {
+    /*
+     * login_attempts 係 rate limit 用嘅 rolling window counter。
+     * key 係 hash 後嘅 (ip|username)，避免明文寫入 D1。
+     * 每次失敗 → fails+1 並設 window_start；成功 → 整條刪除。
+     * 超過窗口（10 min）後自動重置。
+     */
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS login_attempts (
+        key TEXT PRIMARY KEY,
+        fails INTEGER NOT NULL DEFAULT 0,
+        window_start INTEGER NOT NULL,
+        locked_until INTEGER NOT NULL DEFAULT 0
+      )
+    `).run();
+
     const SettingTableExists = await db.prepare(`
       SELECT name FROM sqlite_master WHERE type='table' AND name='settings'
     `).first();
