@@ -12,20 +12,28 @@
  *  - hashKey SHA-256 唔同 IP / username 會產生唔同 key
  *  - 無 DB (dev) → 唔擋
  */
-import { test } from 'node:test';
+import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   checkLoginAllowed,
   recordLoginFailure,
   clearLoginFailures,
+  __resetSchemaCacheForTest,
 } from '../src/utils/loginRateLimit.js';
+
+beforeEach(() => {
+  __resetSchemaCacheForTest();
+});
 
 /* ---------------- Mock D1 ---------------- */
 
-function makeDb() {
+function makeDb(options = {}) {
   const store = new Map(); // key -> { fails, window_start, locked_until }
+  const { failOn = null } = options; // 'read' | 'write' | 'create' | null
+  let createCalls = 0;
   return {
     store,
+    createCalls: () => createCalls,
     prepare(sql) {
       return {
         params: [],
@@ -34,15 +42,26 @@ function makeDb() {
           return this;
         },
         async first() {
+          if (failOn === 'read' && /FROM login_attempts/.test(sql)) {
+            throw new Error('D1 read error (simulated)');
+          }
           if (/FROM login_attempts WHERE key/.test(sql)) {
             return store.get(this.params[0]) ?? null;
           }
           return null;
         },
         async run() {
+          if (/CREATE TABLE IF NOT EXISTS login_attempts/.test(sql)) {
+            createCalls += 1;
+            if (failOn === 'create') {
+              throw new Error('D1 create error (simulated)');
+            }
+            return { success: true };
+          }
+          if (failOn === 'write' && /INSERT INTO login_attempts|UPDATE login_attempts|DELETE FROM login_attempts/.test(sql)) {
+            throw new Error('D1 write error (simulated)');
+          }
           if (/INSERT INTO login_attempts/.test(sql)) {
-            // INSERT INTO login_attempts (key, fails, window_start, locked_until) VALUES (?, 1, ?, 0)
-            // bind params: (key, window_start) — fails=1, locked_until=0 are hardcoded.
             store.set(this.params[0], {
               fails: 1,
               window_start: Number(this.params[1]),
@@ -221,4 +240,87 @@ test('DoS resistance: locked_until 到期後自動放行', async () => {
   }
   const r = await checkLoginAllowed(req, env, 'admin');
   assert.equal(r.allowed, true, 'expired lock should allow');
+});
+
+test('cold-start: schema self-bootstrap，direct POST 唔使 /api/config', async () => {
+  const env = { DB: makeDb() };
+  const req = makeRequest();
+  await recordLoginFailure(req, env, 'admin');
+  const r = await checkLoginAllowed(req, env, 'admin');
+  assert.equal(r.allowed, true);
+  assert.ok(env.DB.createCalls() >= 1, 'schema should be ensured');
+});
+
+test('cold-start: CREATE TABLE IF NOT EXISTS 至少執行一次', async () => {
+  const env = { DB: makeDb() };
+  const req = makeRequest();
+  await recordLoginFailure(req, env, 'admin');
+  await checkLoginAllowed(req, env, 'admin');
+  assert.ok(env.DB.createCalls() >= 1);
+});
+
+test('D1 read error: fail closed，唔俾 attacker 利用 storage error 繞過', async () => {
+  const env = { DB: makeDb({ failOn: 'read' }) };
+  const req = makeRequest();
+  const r = await checkLoginAllowed(req, env, 'admin');
+  assert.equal(r.allowed, false, 'storage error 應該 deny，唔係 allow');
+  assert.equal(r.reason, 'storage');
+  assert.ok(r.retryAfterSec > 0);
+});
+
+test('D1 create schema error: fail closed', async () => {
+  const env = { DB: makeDb({ failOn: 'create' }) };
+  const req = makeRequest();
+  const r = await checkLoginAllowed(req, env, 'admin');
+  assert.equal(r.allowed, false);
+  assert.equal(r.reason, 'storage');
+});
+
+test('D1 write error: recordLoginFailure throw（caller 應該 fail closed 503）', async () => {
+  const env = { DB: makeDb({ failOn: 'write' }) };
+  const req = makeRequest();
+  try {
+    await recordLoginFailure(req, env, 'admin');
+    assert.fail('should have thrown');
+  } catch (err) {
+    assert.equal(err.name, 'RateLimitStorageError');
+  }
+});
+
+test('ip spoof: 唔信 x-forwarded-for', async () => {
+  const env = { DB: makeDb() };
+  const reqA = {
+    headers: {
+      get(name) {
+        if (name === 'cf-connecting-ip') return '203.0.113.1';
+        if (name === 'x-forwarded-for') return '203.0.113.99';
+        return null;
+      },
+    },
+  };
+  await recordLoginFailure(reqA, env, 'admin');
+  const reqB = {
+    headers: {
+      get(name) {
+        if (name === 'cf-connecting-ip') return '203.0.113.99';
+        return null;
+      },
+    },
+  };
+  const r1 = await recordLoginFailure(reqA, env, 'admin');
+  const r2 = await recordLoginFailure(reqB, env, 'admin');
+  assert.equal(r1.fails, 2);
+  assert.equal(r2.fails, 1);
+});
+
+test('concurrent: Promise.all 唔會爆', async () => {
+  const env = { DB: makeDb() };
+  const req = makeRequest();
+  const results = await Promise.all([
+    recordLoginFailure(req, env, 'admin'),
+    recordLoginFailure(req, env, 'admin'),
+  ]);
+  assert.equal(results.length, 2);
+  const maxFails = Math.max(results[0].fails, results[1].fails);
+  assert.ok(maxFails >= 1 && maxFails <= 2);
 });

@@ -494,7 +494,16 @@ async function handleLoginAction({ request, env, sys, data }) {
     const isTurnstileVerified = await verifyTurnstileToken(turnstileToken, turnstileSecretKey);
 
     if (!isTurnstileVerified) {
-      await recordLoginFailure(request, env, username);
+      /*
+       * recordLoginFailure 會 throw 如果 D1 寫入失敗。
+       * 呢個時候應該 fail-closed（503），唔好 silent ignore 令 attacker 無限試。
+       */
+      try {
+        await recordLoginFailure(request, env, username);
+      } catch (err) {
+        console.error('[rate-limit] record failure failed:', err);
+        return createErrorResponse(new AppError('rateLimitUnavailable', 503, { retryAfter: 30 }));
+      }
       return createErrorResponse(new AppError('verificationFailed', 403));
     }
   }
@@ -509,7 +518,12 @@ async function handleLoginAction({ request, env, sys, data }) {
   const credentialResult = await validateCredentials(mockRequest, env, sys);
 
   if (!credentialResult.valid) {
-    await recordLoginFailure(request, env, username);
+    try {
+      await recordLoginFailure(request, env, username);
+    } catch (err) {
+      console.error('[rate-limit] record failure failed:', err);
+      return createErrorResponse(new AppError('rateLimitUnavailable', 503, { retryAfter: 30 }));
+    }
     return createUnauthorizedResponse('invalidCredentials');
   }
 
@@ -525,7 +539,7 @@ async function handleLoginAction({ request, env, sys, data }) {
     }
   }
 
-  // 成功 → 清 counter，下次 login 唔會被之前嘅失敗影響
+  // 成功 → 清 counter；clearLoginFailures 內部已 catch，唔會 throw
   await clearLoginFailures(request, env, username);
 
   try {
