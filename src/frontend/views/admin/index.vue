@@ -285,6 +285,8 @@
         :upgrade-command="getCustomUpgradeCommand()"
         :copied-cmd="copiedCmd"
         :copied-upgrade-cmd="copiedUpgradeCmd"
+        :install-secret-loading="installSecretLoading"
+        :install-secret-error="installSecretError"
         @close="closeCopyModal"
         @copy-cmd="copyCustomCmd"
         @copy-upgrade-cmd="copyCustomUpgradeCmd"
@@ -1518,14 +1520,26 @@ const loadSettings = async () => {
  * VULN-010 fix: 主動 fetch install secret，得喺需要生成 install command 嘅時候 call。
  * Backend 會 log audit（ip + ua）。
  */
+const installSecretLoading = ref(false)
+const installSecretError = ref('')
+
 const fetchInstallSecret = async () => {
+  installSecretLoading.value = true
+  installSecretError.value = ''
   try {
     const result = await adminApiForSite({ action: 'get_install_secret' })
     if (result.success && result.api_secret) {
       apiSecret.value = result.api_secret
+    } else {
+      installSecretError.value = result.message || 'install secret unavailable'
+      apiSecret.value = ''
     }
   } catch (e) {
     console.error('[ERROR] Fetch install secret failed:', e)
+    installSecretError.value = e?.message || 'network error'
+    apiSecret.value = ''
+  } finally {
+    installSecretLoading.value = false
   }
 }
 

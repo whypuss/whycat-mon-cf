@@ -131,17 +131,48 @@
         </div>
       </div>
 
+      <div v-if="installSecretError" class="form-group">
+        <div class="login-error" role="alert">
+          ⚠️ {{ installSecretError }}（install secret 獲取失敗，暫時唔可以生成命令）
+        </div>
+      </div>
+
       <div class="form-group">
-        <label class="form-label">{{ trans.installCommand }}</label>
+        <label class="form-label">{{ trans.installCommand }} (全新安裝)</label>
         <div class="cmd-output-wrapper" :class="{ copied: copiedCmd }">
           <span class="cmd-prompt">{{ targetOs === 'windows' ? 'PS' : '$' }}</span>
-          <pre class="cmd-output">{{ installCommand }}</pre>
+          <pre class="cmd-output">{{ installSecretLoading ? '⏳ 正在獲取 install secret…' : installCommand }}</pre>
+        </div>
+      </div>
+
+      <div v-if="targetOs === 'linux' || targetOs === 'unix'" class="form-group mt-3">
+        <label class="form-label">{{ trans.upgradeCommand || '更新 Probe（保留配置）' }}</label>
+        <div class="cmd-output-wrapper" :class="{ copied: copiedUpgradeCmd }">
+          <span class="cmd-prompt">$</span>
+          <pre class="cmd-output">{{ upgradeCommand }}</pre>
         </div>
       </div>
 
       <div class="modal-footer flex-justify-between">
         <div class="flex items-center gap-2">
-          <button @click="$emit('copy-cmd')" class="btn btn-primary">{{ copiedCmd ? '✅ ' + trans.copied : '📋 ' + trans.copy }}</button> <button @click="$emit('open-edit-from-copy')" class="btn btn-blue">✏️ {{ trans.edit }}</button>
+          <button
+            @click="$emit('copy-cmd')"
+            class="btn btn-primary"
+            :disabled="installSecretLoading || !!installSecretError"
+            :title="installSecretLoading ? '正在獲取 install secret…' : (installSecretError || '')"
+          >
+            {{ installSecretLoading ? '⏳ 獲取密鑰中…' : (copiedCmd ? '✅ ' + trans.copied : '📋 複製新裝命令') }}
+          </button>
+          <button
+            v-if="targetOs === 'linux' || targetOs === 'unix'"
+            @click="$emit('copy-upgrade-cmd')"
+            class="btn btn-green"
+            :disabled="installSecretLoading || !!installSecretError"
+            :title="installSecretLoading ? '正在獲取 install secret…' : (installSecretError || '')"
+          >
+            {{ installSecretLoading ? '⏳ 獲取密鑰中…' : (copiedUpgradeCmd ? '✅ ' + trans.copied : '⚡ 複製更新命令') }}
+          </button>
+          <button @click="$emit('open-edit-from-copy')" class="btn btn-blue">✏️ {{ trans.edit }}</button>
         </div>
         <button @click="$emit('close')" class="btn">{{ trans.cancel }}</button>
       </div>
@@ -178,12 +209,22 @@ const props = defineProps({
   txCorrection: { type: [Number, String], default: '' },
   autoUpdate: { type: Boolean, default: false },
   installCommand: { type: String, default: '' },
-  copiedCmd: { type: Boolean, default: false }
+  upgradeCommand: { type: String, default: '' },
+  copiedCmd: { type: Boolean, default: false },
+  copiedUpgradeCmd: { type: Boolean, default: false },
+  /*
+   * VULN-010 followup: install secret fetch state。
+   * 由 parent 控制；fetch 未完成時禁用 copy 按鈕避免 -secret='' 進入剪貼板；
+   * fetch 失敗時顯示錯誤並唔俾生成 install command。
+   */
+  installSecretLoading: { type: Boolean, default: false },
+  installSecretError: { type: String, default: '' }
 })
 
 const emit = defineEmits([
   'close',
   'copy-cmd',
+  'copy-upgrade-cmd',
   'open-edit-from-copy',
   'update:target-os',
   'update:install-mode',
