@@ -14,9 +14,19 @@ echo "========================================================"
 echo " CF-Server-Monitor Probe v1.2.1-unlock 部署/熱升級"
 echo "========================================================"
 
-# 1. 下載二進制
+# 1. 下載二進制（自動 fallback curl → wget；OpenWrt/Alpine BusyBox 通常只有 wget）
 echo "==> [1/5] 下載 v1.2.1-unlock 二進制..."
-curl -fSL "$URL" -o /tmp/cf-probe
+if command -v curl >/dev/null 2>&1; then
+  curl -fSL "$URL" -o /tmp/cf-probe
+elif command -v wget >/dev/null 2>&1; then
+  wget -qO /tmp/cf-probe "$URL"
+else
+  echo "FATAL: 系統冇 curl 亦冇 wget，請先安裝其中一個"
+  echo "  apk add curl            # Alpine"
+  echo "  apt install curl -y     # Debian/Ubuntu"
+  echo "  opkg install curl       # OpenWrt"
+  exit 2
+fi
 
 # 2. SHA256 校驗
 echo "==> [2/5] 驗證 SHA256 完整性..."

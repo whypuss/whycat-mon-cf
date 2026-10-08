@@ -23,9 +23,19 @@ if [ ! -f /usr/local/bin/cf-probe ]; then
   echo "==> [WARN] 尚未偵測到 /usr/local/bin/cf-probe，執行新安裝部署..."
 fi
 
-# 2. 下載二進制
+# 2. 下載二進制（自動 fallback curl → wget；OpenWrt/Alpine BusyBox 通常只有 wget）
 echo "==> [1/4] 下載 v1.2.1-unlock 二進制..."
-curl -fSL "$URL" -o /tmp/cf-probe
+if command -v curl >/dev/null 2>&1; then
+  curl -fSL "$URL" -o /tmp/cf-probe
+elif command -v wget >/dev/null 2>&1; then
+  wget -qO /tmp/cf-probe "$URL"
+else
+  echo "FATAL: 系統冇 curl 亦冇 wget，請先安裝其中一個"
+  echo "  apk add curl            # Alpine"
+  echo "  apt install curl -y     # Debian/Ubuntu"
+  echo "  opkg install curl       # OpenWrt"
+  exit 2
+fi
 
 # 3. SHA256 校驗
 echo "==> [2/4] 驗證 SHA256 完整性..."
