@@ -1527,11 +1527,22 @@ const fetchInstallSecret = async () => {
   installSecretLoading.value = true
   installSecretError.value = ''
   try {
-    const result = await adminApiForSite({ action: 'get_install_secret' })
+    const wrapper = await adminApiForSite({ action: 'get_install_secret' })
+
+    // http wrapper 嘅 shape：成功 → { data: { success, api_secret, ... } }
+    // 失敗 → { error, code, message, ... }
+    // 我哋要喺 wrapper.data 讀 backend body。
+    if (wrapper.error) {
+      installSecretError.value = wrapper.message || wrapper.error || 'install secret unavailable'
+      apiSecret.value = ''
+      return
+    }
+
+    const result = wrapper.data || {}
     if (result.success && result.api_secret) {
       apiSecret.value = result.api_secret
     } else {
-      installSecretError.value = result.message || 'install secret unavailable'
+      installSecretError.value = result.message || result.error || 'install secret unavailable'
       apiSecret.value = ''
     }
   } catch (e) {
